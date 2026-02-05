@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSR Take Note</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0e1a;
+            --bg-card: #151922;
+            --bg-card-hover: #1a1f2e;
+            --accent-cyan: #00f5ff;
+            --accent-magenta: #ff00aa;
+            --accent-orange: #ff6b35;
+            --text-primary: #e8eaed;
+            --text-secondary: #9ca3af;
+            --border-color: #2a2f3a;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+            padding: 2rem;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 245, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 170, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255, 107, 53, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 2rem 0 3rem 0;
+            position: relative;
+            animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.05), rgba(255, 0, 170, 0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, var(--accent-cyan), var(--accent-magenta));
+            border-radius: 2px;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .full-width { grid-column: span 6; }
+        .span-2 { grid-column: span 2; }
+        .span-3 { grid-column: span 3; }
+        .span-4 { grid-column: span 4; }
+
+        /* Form elements */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        input, select, textarea {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 245, 255, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.875rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 245, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-cyan);
+            background: var(--bg-card-hover);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #0ea56d;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        /* Output area */
+        #output-area {
+            background: #000;
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #00ff00;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            border: 1px solid var(--border-color);
+            margin-top: 2rem;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Dynamic sections */
+        .dynamic-section {
+            display: none;
+        }
+
+        .dynamic-section.active {
+            display: grid;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .logo {
+                font-size: 2rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .span-2, .span-3, .span-4, .full-width {
+                grid-column: span 1;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-cyan);
+        }
+
+        /* Checkbox styling */
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--accent-cyan);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .checkbox-label {
+            color: var(--text-primary);
+            cursor: pointer;
+            margin: 0;
+            text-transform: none;
+            letter-spacing: normal;
+            font-family: 'Outfit', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1 class="logo">CSR Take Note</h1>
+        <p class="tagline">Support Notemaker</p>
+    </header>
+
+    <div class="card">
+        <h2 class="section-title">Contact Information</h2>
+        <div class="grid">
+            <div class="span-2 form-group">
+                <label>Contact Name</label>
+                <input type="text" id="contactName">
+            </div>
+            <div class="span-2 form-group">
+                <label>Contact Phone</label>
+                <input type="text" id="contactPhone">
+            </div>
+            <div class="span-2 form-group">
+                <label>Contact Email</label>
+                <input type="email" id="contactEmail">
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="section-title">Issue Type</h2>
+        <div class="grid">
+            <div class="full-width form-group">
+                <label>Select Issue Type</label>
+                <select id="issueType" onchange="toggleIssueFields()">
+                    <option value="">-- Select Issue Type --</option>
+                    <option value="general">General/Other Issue</option>
+                    <option value="data">Data Connection Issues</option>
+                    <option value="voice">Voice Connection Issues</option>
+                    <option value="down-circuit">Down Circuit</option>
+                    <option value="circuit-flapping">Circuit Flapping/Bouncing</option>
+                    <option value="slow-speeds">Slow Internet Speeds</option>
+                    <option value="packet-loss">Packet Loss</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- GENERAL/OTHER ISSUE -->
+    <div id="general-fields" class="dynamic-section card">
+        <h2 class="section-title">General Issue Details</h2>
+        <div class="grid">
+            <div class="full-width form-group">
+                <label>Issue Summary</label>
+                <input type="text" id="generalSummary" placeholder="Brief summary of the issue">
+            </div>
+            <div class="span-3 form-group">
+                <label>When did issue start?</label>
+                <input type="text" id="generalStart" placeholder="MM/DD/YYYY HH:MM AM/PM">
+            </div>
+            <div class="span-3 form-group">
+                <label>Affected Service/Area</label>
+                <input type="text" id="generalAffected" placeholder="e.g., Email, Billing, Account Access">
+            </div>
+        </div>
+    </div>
+
+    <!-- DATA CONNECTION ISSUES -->
+    <div id="data-fields" class="dynamic-section card">
+        <h2 class="section-title">Data Connection Details</h2>
+        <div class="grid">
+            <div class="span-2 form-group">
+                <label>Circuit ID</label>
+                <input type="text" id="dataCktId">
+            </div>
+            <div class="span-4 form-group">
+                <label>Physical Address</label>
+                <input type="text" id="dataAddress">
+            </div>
+            <div class="span-2 form-group">
+                <label>Internet Down?</label>
+                <select id="dataInternetDown">
+                    <option value="">Select</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+            <div class="span-2 form-group">
+                <label>When did issue start?</label>
+                <input type="text" id="dataStart" placeholder="MM/DD/YYYY HH:MM">
+            </div>
+            <div class="span-2 form-group">
+                <label>Link Lights On?</label>
+                <select id="dataLinkLights">
+                    <option value="">Select</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+            <div class="span-2 form-group">
+                <label>Power Cycled?</label>
+                <select id="dataPowerCycle">
+                    <option value="">Select</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+            <div class="span-2 form-group">
+                <label>Equipment Type</label>
+                <select id="equipmentType">
+                    <option value="">Select</option>
+                    <option value="mikrotik">Mikrotik</option>
+                    <option value="ciena">Ciena</option>
+                    <option value="customer-owned">Customer Owned</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- VOICE CONNECTION ISSUES -->
+    <div id="voice-fields" class="dynamic-section card">
+        <h2 class="section-title">Voice Connection Details</h2>
+        <div class="grid">
+            <div class="span-3 form-group">
+                <label>Circuit ID</label>
+                <input type="text" id="voiceCktId">
+            </div>
+            <div class="span-3 form-group">
+                <label>Phone Number</label>
+                <input type="text" id="voicePhoneNum">
+            </div>
+            <div class="span-2 form-group">
+                <label>When did issue start?</label>
+                <input type="text" id="voiceStart" placeholder="MM/DD/YYYY HH:MM">
+            </div>
+            <div class="span-2 form-group">
+                <label>Affected Numbers</label>
+                <input type="text" id="voiceAffectedNums" placeholder="e.g., All, Extension 101">
+            </div>
+            <div class="span-2 form-group">
+                <label>Issue Type</label>
+                <select id="voiceIssueType">
+                    <option value="">Select</option>
+                    <option value="No Dial Tone">No Dial Tone</option>
+                    <option value="Cannot Make Calls">Cannot Make Calls</option>
+                    <option value="Cannot Receive Calls">Cannot Receive Calls</option>
+                    <option value="Poor Call Quality">Poor Call Quality</option>
+                    <option value="Dropped Calls">Dropped Calls</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- DOWN CIRCUIT -->
+    <div id="down-circuit-fields" class="dynamic-section card">
+        <h2 class="section-title">Down Circuit Details</h2>
+        <div class="grid">
+            <div class="span-3 form-group">
+                <label>Circuit ID</label>
+                <input type="text" id="downCktId">
+            </div>
+            <div class="span-3 form-group">
+                <label>Physical Address</label>
+                <input type="text" id="downAddress">
+            </div>
+            <div class="span-2 form-group">
+                <label>When did circuit go down?</label>
+                <input type="text" id="downStart" placeholder="MM/DD/YYYY HH:MM">
+            </div>
+            <div class="span-2 form-group">
+                <label>Link Lights Status</label>
+                <select id="downLinkLights">
+                    <option value="">Select</option>
+                    <option value="All Off">All Off</option>
+                    <option value="Some On">Some On</option>
+                    <option value="All On">All On</option>
+                </select>
+            </div>
+            <div class="span-2 form-group">
+                <label>Power Cycled?</label>
+                <select id="downPowerCycle">
+                    <option value="">Select</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- CIRCUIT FLAPPING -->
+    <div id="circuit-flapping-fields" class="dynamic-section card">
+        <h2 class="section-title">Circuit Flapping Details</h2>
+        <div class="grid">
+            <div class="span-3 form-group">
+                <label>Circuit ID</label>
+                <input type="text" id="flappingCktId">
+            </div>
+            <div class="span-3 form-group">
+                <label>Physical Address</label>
+                <input type="text" id="flappingAddress">
+            </div>
+            <div class="span-2 form-group">
+                <label>When did flapping start?</label>
+                <input type="text" id="flappingStart" placeholder="MM/DD/YYYY HH:MM">
+            </div>
+            <div class="span-2 form-group">
+                <label>Frequency</label>
+                <input type="text" id="flappingFrequency" placeholder="e.g., Every 5 minutes">
+            </div>
+            <div class="span-2 form-group">
+                <label>Pattern</label>
+                <input type="text" id="flappingPattern" placeholder="e.g., Random, Consistent">
+            </div>
+        </div>
+    </div>
+
+    <!-- SLOW SPEEDS -->
+    <div id="slow-speeds-fields" class="dynamic-section card">
+        <h2 class="section-title">Slow Speeds Details</h2>
+        <div class="grid">
+            <div class="span-3 form-group">
+                <label>Circuit ID</label>
+                <input type="text" id="slowCktId">
+            </div>
+            <div class="span-3 form-group">
+                <label>Physical Address</label>
+                <input type="text" id="slowAddress">
+            </div>
+            <div class="span-2 form-group">
+                <label>Expected Speed</label>
+                <input type="text" id="slowExpected" placeholder="e.g., 100 Mbps">
+            </div>
+            <div class="span-2 form-group">
+                <label>Actual Speed</label>
+                <input type="text" id="slowActual" placeholder="e.g., 10 Mbps">
+            </div>
+            <div class="span-2 form-group">
+                <label>Speed Test URL/Result</label>
+                <input type="text" id="slowTestResult" placeholder="speedtest.net result">
+            </div>
+        </div>
+    </div>
+
+    <!-- PACKET LOSS -->
+    <div id="packet-loss-fields" class="dynamic-section card">
+        <h2 class="section-title">Packet Loss Details</h2>
+        <div class="grid">
+            <div class="span-3 form-group">
+                <label>Circuit ID</label>
+                <input type="text" id="packetCktId">
+            </div>
+            <div class="span-3 form-group">
+                <label>Physical Address</label>
+                <input type="text" id="packetAddress">
+            </div>
+            <div class="full-width form-group">
+                <label>Logs/Diagnostics</label>
+                <textarea id="packetLogs" placeholder="Paste ping results or diagnostic output"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="section-title">Additional Details</h2>
+        <div class="grid">
+            <div class="full-width form-group">
+                <label>Detailed Description</label>
+                <textarea id="description" placeholder="Provide any additional details about the issue"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn btn-primary" onclick="generateNote()">
+            <span>Generate Note</span>
+        </button>
+        <button class="btn btn-danger" onclick="resetForm()">
+            <span>Reset Form</span>
+        </button>
+    </div>
+
+    <div id="output-area" style="display: none;"></div>
+
+    <div class="btn-group" style="display: none;" id="copy-btn-container">
+        <button class="btn btn-success" id="copy-btn" onclick="copyToClipboard()">
+            <span>📋 Copy to Clipboard</span>
+        </button>
+    </div>
+</div>
+
+<script>
+    function toggleIssueFields() {
+        var issueType = document.getElementById('issueType').value;
+        
+        document.querySelectorAll('.dynamic-section').forEach(function(section) {
+            section.classList.remove('active');
+            section.style.display = 'none';
+        });
+        
+        if (issueType) {
+            var sectionId = issueType + '-fields';
+            var section = document.getElementById(sectionId);
+            if (section) {
+                section.style.display = 'grid';
+                setTimeout(function() {
+                    section.classList.add('active');
+                }, 10);
+            }
+        }
+    }
+
+    function generateNote() {
+        var note = '============================================================\n';
+        note += 'TIER 1 SUPPORT TRIAGE NOTE\n';
+        note += '============================================================\n\n';
+
+        note += 'CONTACT INFORMATION:\n';
+        note += '  Name: ' + (document.getElementById('contactName').value || 'N/A') + '\n';
+        note += '  Phone: ' + (document.getElementById('contactPhone').value || 'N/A') + '\n';
+        note += '  Email: ' + (document.getElementById('contactEmail').value || 'N/A') + '\n\n';
+
+        var issueType = document.getElementById('issueType').value;
+        note += 'ISSUE TYPE: ' + (issueType ? issueType.replace('-', ' ').toUpperCase() : 'NOT SPECIFIED') + '\n\n';
+
+        if (issueType === 'general') {
+            note += 'GENERAL ISSUE:\n';
+            note += '  Summary: ' + (document.getElementById('generalSummary').value || 'N/A') + '\n';
+            note += '  Start Time: ' + (document.getElementById('generalStart').value || 'N/A') + '\n';
+            note += '  Affected Service: ' + (document.getElementById('generalAffected').value || 'N/A') + '\n';
+        } else if (issueType === 'data') {
+            note += 'DATA CONNECTION:\n';
+            note += '  Circuit ID: ' + (document.getElementById('dataCktId').value || 'N/A') + '\n';
+            note += '  Address: ' + (document.getElementById('dataAddress').value || 'N/A') + '\n';
+            note += '  Internet Down: ' + (document.getElementById('dataInternetDown').value || 'N/A') + '\n';
+            note += '  Start Time: ' + (document.getElementById('dataStart').value || 'N/A') + '\n';
+            note += '  Link Lights: ' + (document.getElementById('dataLinkLights').value || 'N/A') + '\n';
+            note += '  Power Cycled: ' + (document.getElementById('dataPowerCycle').value || 'N/A') + '\n';
+            note += '  Equipment: ' + (document.getElementById('equipmentType').value || 'N/A') + '\n';
+        } else if (issueType === 'voice') {
+            note += 'VOICE CONNECTION:\n';
+            note += '  Circuit ID: ' + (document.getElementById('voiceCktId').value || 'N/A') + '\n';
+            note += '  Phone Number: ' + (document.getElementById('voicePhoneNum').value || 'N/A') + '\n';
+            note += '  Start Time: ' + (document.getElementById('voiceStart').value || 'N/A') + '\n';
+            note += '  Affected Numbers: ' + (document.getElementById('voiceAffectedNums').value || 'N/A') + '\n';
+            note += '  Issue Type: ' + (document.getElementById('voiceIssueType').value || 'N/A') + '\n';
+        } else if (issueType === 'down-circuit') {
+            note += 'DOWN CIRCUIT:\n';
+            note += '  Circuit ID: ' + (document.getElementById('downCktId').value || 'N/A') + '\n';
+            note += '  Address: ' + (document.getElementById('downAddress').value || 'N/A') + '\n';
+            note += '  Down Since: ' + (document.getElementById('downStart').value || 'N/A') + '\n';
+            note += '  Link Lights: ' + (document.getElementById('downLinkLights').value || 'N/A') + '\n';
+            note += '  Power Cycled: ' + (document.getElementById('downPowerCycle').value || 'N/A') + '\n';
+        } else if (issueType === 'circuit-flapping') {
+            note += 'CIRCUIT FLAPPING:\n';
+            note += '  Circuit ID: ' + (document.getElementById('flappingCktId').value || 'N/A') + '\n';
+            note += '  Address: ' + (document.getElementById('flappingAddress').value || 'N/A') + '\n';
+            note += '  Started: ' + (document.getElementById('flappingStart').value || 'N/A') + '\n';
+            note += '  Frequency: ' + (document.getElementById('flappingFrequency').value || 'N/A') + '\n';
+            note += '  Pattern: ' + (document.getElementById('flappingPattern').value || 'N/A') + '\n';
+        } else if (issueType === 'slow-speeds') {
+            note += 'SLOW SPEEDS:\n';
+            note += '  Circuit ID: ' + (document.getElementById('slowCktId').value || 'N/A') + '\n';
+            note += '  Address: ' + (document.getElementById('slowAddress').value || 'N/A') + '\n';
+            note += '  Expected Speed: ' + (document.getElementById('slowExpected').value || 'N/A') + '\n';
+            note += '  Actual Speed: ' + (document.getElementById('slowActual').value || 'N/A') + '\n';
+            note += '  Speed Test: ' + (document.getElementById('slowTestResult').value || 'N/A') + '\n';
+        } else if (issueType === 'packet-loss') {
+            note += 'PACKET LOSS:\n';
+            note += '  Circuit ID: ' + (document.getElementById('packetCktId').value || 'N/A') + '\n';
+            note += '  Address: ' + (document.getElementById('packetAddress').value || 'N/A') + '\n';
+            note += '  Diagnostics: ' + (document.getElementById('packetLogs').value || 'N/A') + '\n';
+        }
+
+        note += '\nDETAILED DESCRIPTION:\n';
+        note += (document.getElementById('description').value || 'No additional details provided') + '\n';
+
+        note += '\n============================================================\n';
+        
+        var equipmentType = document.getElementById('equipmentType') ? document.getElementById('equipmentType').value : '';
+        if (equipmentType === 'mikrotik' || equipmentType === 'ciena') {
+            note += 'IMPORTANT: Do not power cycle managed devices - this clears logs needed for troubleshooting.\n';
+        } else {
+            note += 'Note: Follow standard troubleshooting procedures before escalation.\n';
+        }
+
+        var output = document.getElementById('output-area');
+        output.textContent = note;
+        output.style.display = 'block';
+        document.getElementById('copy-btn-container').style.display = 'flex';
+        output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function copyToClipboard() {
+        var text = document.getElementById('output-area').textContent;
+        navigator.clipboard.writeText(text).then(function() {
+            var btn = document.getElementById('copy-btn');
+            var originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span>✓ Copied to Clipboard!</span>';
+            setTimeout(function() { btn.innerHTML = originalHTML; }, 2000);
+        });
+    }
+
+    function resetForm() {
+        if (confirm('Are you sure you want to reset the form? All data will be cleared.')) {
+            document.querySelectorAll('input[type="text"], input[type="email"]').forEach(function(el) {
+                el.value = '';
+            });
+            
+            document.querySelectorAll('textarea').forEach(function(el) {
+                el.value = '';
+            });
+            
+            document.querySelectorAll('select').forEach(function(el) {
+                el.selectedIndex = 0;
+            });
+            
+            document.getElementById('output-area').style.display = 'none';
+            document.getElementById('copy-btn-container').style.display = 'none';
+            
+            toggleIssueFields();
+        }
+    }
+</script>
+</body>
+</html>

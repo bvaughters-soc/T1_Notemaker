@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tier 1 Support Triage Notemaker</title>
+    <style>
+        :root { 
+            --primary: #1a73e8; 
+            --primary-hover: #1557b0; 
+            --bg: #f0f2f5; 
+            --text: #333;
+            --card-bg: white;
+            --input-bg: white;
+            --input-border: #ced4da;
+            --section-bg: #f8f9fa;
+        }
+        
+        [data-theme="dark"] {
+            --primary: #4a9eff;
+            --primary-hover: #6bb0ff;
+            --bg: #1e1e1e;
+            --text: #e0e0e0;
+            --card-bg: #2d2d2d;
+            --input-bg: #3a3a3a;
+            --input-border: #555;
+            --section-bg: #252525;
+        }
+        
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); padding: 20px; color: var(--text); line-height: 1.5; transition: background 0.3s, color 0.3s; }
+        .container { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); width: 100%; max-width: 900px; margin: auto; position: relative; transition: background 0.3s; }
+        h2 { color: var(--primary); margin: 0 0 15px 0; border-bottom: 2px solid var(--section-bg); padding-bottom: 10px; font-weight: 500; font-size: 1.4rem; clear: both; }
+        
+        .theme-toggle { float: right; background: var(--input-bg); border: 1px solid var(--input-border); padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 1rem; transition: all 0.3s; margin-bottom: 10px; }
+        .theme-toggle:hover { background: var(--section-bg); }
+        
+        .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+        .full-width { grid-column: span 6; }
+        .span-2 { grid-column: span 2; }
+        .span-3 { grid-column: span 3; }
+        .span-4 { grid-column: span 4; }
+        
+        label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; color: #999; letter-spacing: 0.5px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--input-border); border-radius: 6px; box-sizing: border-box; font-size: 13px; background: var(--input-bg); color: var(--text); transition: all 0.3s; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+        
+        .section-header { grid-column: span 6; margin-top: 15px; padding: 6px 10px; background: var(--section-bg); border-left: 4px solid var(--primary); font-weight: bold; font-size: 0.8rem; color: var(--text); }
+        .sub-header { grid-column: span 6; font-size: 0.7rem; color: var(--primary); font-weight: bold; margin-top: 8px; }
+        
+        .dynamic-section { display: none; }
+
+        button { display: block; width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; margin: 15px auto 0 auto; font-weight: bold; font-size: 14px; max-width: 900px; transition: background 0.3s; }
+        button:hover { background: var(--primary-hover); }
+        #output-area { margin-top: 15px; padding: 15px; background: #1a1a1a; border-radius: 6px; white-space: pre-wrap; font-family: 'Consolas', monospace; font-size: 0.85em; display: none; color: #f8f9fa; border-left: 5px solid var(--primary); }
+        .copy-btn { background: #34a853; margin-top: 10px; display: none; }
+        .copy-btn:hover { background: #2d8e47; }
+        .reset-btn { background: #dc3545; }
+        .reset-btn:hover { background: #c82333; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle">🌙</button>
+    <h2>📋 Tier 1 Support Triage Notemaker</h2>
+    
+    <div class="grid">
+        <!-- Contact Info -->
+        <div class="section-header">CONTACT INFORMATION</div>
+        <div class="span-2"><label>Contact Name</label><input type="text" id="contactName"></div>
+        <div class="span-2"><label>Contact Phone</label><input type="text" id="contactPhone"></div>
+        <div class="span-2"><label>Contact Email</label><input type="email" id="contactEmail"></div>
+
+        <!-- Issue Type Selection -->
+        <div class="section-header">ISSUE TYPE</div>
+        <div class="full-width">
+            <select id="issueType" onchange="toggleIssueFields()">
+                <option value="">-- Select Issue Type --</option>
+                <option value="general">General/Other Issue</option>
+                <option value="data">Data Connection Issues</option>
+                <option value="voice">Voice Connection Issues</option>
+                <option value="down-circuit">Down Circuit</option>
+                <option value="circuit-flapping">Circuit Flapping/Bouncing</option>
+                <option value="slow-speeds">Slow Internet Speeds</option>
+                <option value="packet-loss">Packet Loss</option>
+            </select>
+        </div>
+
+        <!-- GENERAL/OTHER ISSUE -->
+        <div id="general-fields" class="dynamic-section full-width">
+            <div class="section-header">GENERAL ISSUE NOTES</div>
+            <div class="grid">
+                <div class="full-width"><label>Issue Summary</label><input type="text" id="generalSummary" placeholder="Brief summary of the issue"></div>
+                <div class="span-3"><label>When did issue start? (Date & Time)</label><input type="text" id="generalStart" placeholder="MM/DD/YYYY HH:MM AM/PM"></div>
+                <div class="span-3"><label>Affected Service/Area</label><input type="text" id="generalAffected" placeholder="e.g., Email, Billing, Account Access"></div>
+            </div>
+        </div>
+
+        <!-- DATA CONNECTION ISSUES -->
+        <div id="data-fields" class="dynamic-section full-width">
+            <div class="section-header">DATA CONNECTION DIAGNOSTICS</div>
+            <div class="grid">
+                <div class="span-3"><label>When did issue start? (Date & Time)</label><input type="text" id="dataStart" placeholder="MM/DD/YYYY HH:MM AM/PM"></div>
+                <div class="span-3"><label>Affecting</label><select id="dataAffecting"><option>All Users</option><option>Specific Devices</option></select></div>
+                
+                <div class="sub-header">EQUIPMENT PROVIDED ONSITE</div>
+                <div class="full-width">
+                    <label>What equipment did we provide?</label>
+                    <select id="equipmentType" onchange="toggleEquipmentFields()">
+                        <option value="">-- Select Equipment --</option>
+                        <option value="direct-handoff">Direct Handoff</option>
+                        <option value="mikrotik">Mikrotik Router</option>
+                        <option value="ciena">Ciena Device</option>
+                    </select>
+                </div>
+
+                <!-- Direct Handoff Fields -->
+                <div id="direct-handoff-equipment" style="display: none;" class="full-width">
+                    <div class="grid">
+                        <div class="span-3"><label>Building Switch IP</label><input type="text" id="switchIp" placeholder="e.g., 192.168.1.1"></div>
+                        <div class="span-3"><label>Building Switch Model</label><input type="text" id="switchModel" placeholder="e.g., Cisco 2960"></div>
+                        <div class="span-3"><label>Customer Equipment Connected</label><input type="text" id="customerEquipment" placeholder="e.g., Fortigate Firewall"></div>
+                        <div class="span-3"><label>Customer Rebooted Equipment?</label><select id="customerRebooted"><option>Yes</option><option>No</option><option>Unknown</option></select></div>
+                        <div class="full-width"><label>Link Light on Handoff Port</label><select id="handoffLink"><option>Active</option><option>Down</option><option>Flashing</option><option>Unknown</option></select></div>
+                    </div>
+                </div>
+
+                <!-- Mikrotik Fields -->
+                <div id="mikrotik-equipment" style="display: none;" class="full-width">
+                    <div class="grid">
+                        <div class="span-3"><label>Mikrotik IP Address</label><input type="text" id="mikrotikIp" placeholder="e.g., 10.0.0.1"></div>
+                        <div class="span-3"><label>Can Access Mikrotik Admin?</label><select id="mikrotikAccess"><option>Yes</option><option>No</option><option>Unknown</option></select></div>
+                        <div class="full-width"><label>Lights on Mikrotik</label><input type="text" id="mikrotikLights" placeholder="e.g., All green / Power light off / WAN flashing red"></div>
+                        <div class="full-width"><label>All Cables Secure?</label><select id="mikrotikCables"><option>Yes</option><option>No</option><option>Not Checked</option></select></div>
+                    </div>
+                </div>
+
+                <!-- Ciena Fields -->
+                <div id="ciena-equipment" style="display: none;" class="full-width">
+                    <div class="grid">
+                        <div class="span-3"><label>Ciena IP Address</label><input type="text" id="cienaIp" placeholder="e.g., 10.0.0.1"></div>
+                        <div class="span-3"><label>Can Access Ciena Admin?</label><select id="cienaAccess"><option>Yes</option><option>No</option><option>Unknown</option></select></div>
+                        <div class="full-width"><label>Lights on Ciena</label><input type="text" id="cienaLights" placeholder="e.g., All green / Alarm light on / Link light flashing"></div>
+                        <div class="full-width"><label>All Cables Secure?</label><select id="cienaCables"><option>Yes</option><option>No</option><option>Not Checked</option></select></div>
+                    </div>
+                </div>
+
+                <div class="sub-header">NETWORK DIAGNOSTICS</div>
+                <div class="span-3"><label>Can Ping Internal Gateway?</label><select id="pingGateway"><option>Yes</option><option>No</option><option>Not Tested</option></select></div>
+                <div class="span-3"><label>Can Ping 8.8.8.8?</label><select id="ping8"><option>Yes</option><option>No</option><option>Not Tested</option></select></div>
+                <div class="span-3"><label>Current IP (whatismyip.com)</label><input type="text" id="currentIp"></div>
+                <div class="span-3"><label>IT Team Available?</label><select id="itAvailable"><option>Yes</option><option>No</option><option>Unknown</option></select></div>
+                <div class="full-width"><label>Business Hours / Access Info</label><input type="text" id="dataAccessInfo" placeholder="Mon-Fri 8am-5pm, Contact: John Doe 555-1234"></div>
+            </div>
+        </div>
+
+        <!-- VOICE CONNECTION ISSUES -->
+        <div id="voice-fields" class="dynamic-section full-width">
+            <div class="section-header">VOICE CONNECTION DIAGNOSTICS</div>
+            <div class="grid">
+                <div class="sub-header">GENERAL VOICE QUESTIONS</div>
+                <div class="span-3"><label>When did issue start? (Date & Time)</label><input type="text" id="voiceStart" placeholder="MM/DD/YYYY HH:MM AM/PM"></div>
+                <div class="span-3"><label>Affecting</label><select id="voiceAffecting"><option>All Users</option><option>Specific Users</option></select></div>
+                <div class="span-3"><label>Call Direction</label><select id="callDirection"><option>Both</option><option>Inbound Only</option><option>Outbound Only</option></select></div>
+                <div class="span-3"><label>Call Behavior</label><select id="callBehavior"><option>Failing to Connect</option><option>Dropping Mid-Call</option><option>Poor Audio</option><option>Multiple Issues</option></select></div>
+                <div class="span-3"><label>Audio Symptoms</label><select id="audioSymptoms"><option>Normal Audio</option><option>Silence</option><option>One-Way Audio</option><option>Static</option><option>Garbled Voice</option></select></div>
+                <div class="span-3"><label>Internet Working?</label><select id="internetWorking"><option>Yes</option><option>No</option><option>Unknown</option></select></div>
+
+                <div class="sub-header">VOICE SERVICE TYPE</div>
+                <div class="full-width">
+                    <label>What voice service is the customer using?</label>
+                    <select id="voiceServiceType" onchange="toggleVoiceServiceFields()">
+                        <option value="">-- Select Service --</option>
+                        <option value="alianza-sip">Alianza - SIP Trunking</option>
+                        <option value="alianza-pri">Alianza - PRI (Adtran)</option>
+                        <option value="alianza-analog">Alianza - Analog Lines (Adtran)</option>
+                        <option value="hpbx-yealink">HPBX - Yealink Phone</option>
+                        <option value="hpbx-polycom">HPBX - Polycom Phone</option>
+                        <option value="hpbx-webex">HPBX - Cisco Webex</option>
+                        <option value="hpbx-efax">HPBX - E-Fax</option>
+                    </select>
+                </div>
+
+                <!-- ALIANZA SIP TRUNKING -->
+                <div id="alianza-sip-service" style="display: none;" class="full-width">
+                    <div class="sub-header">SIP TRUNKING DETAILS</div>
+                    <div class="grid">
+                        <div class="span-3"><label>Number of Channels</label><input type="text" id="sipChannels" placeholder="e.g., 10"></div>
+                        <div class="span-3"><label>Main Billing Number (BTN)</label><input type="text" id="sipBtn"></div>
+                        <div class="span-3"><label>Customer PBX Make/Model</label><input type="text" id="sipPbxModel" placeholder="e.g., Cisco UCM, FreePBX"></div>
+                        <div class="span-3"><label>Can Ping SIP Gateway?</label><select id="sipPingGateway"><option>Yes</option><option>No</option><option>Not Tested</option></select></div>
+                        <div class="span-3"><label>SIP Registration Status</label><select id="sipRegStatus"><option>Registered</option><option>Unregistered</option><option>Unknown</option></select></div>
+                        <div class="span-3"><label>Codec Being Used</label><input type="text" id="sipCodec" placeholder="e.g., G.711, G.729"></div>
+                    </div>
+                </div>
+
+                <!-- ALIANZA PRI (ADTRAN) -->
+                <div id="alianza-pri-service" style="display: none;" class="full-width">
+                    <div class="sub-header">PRI (ADTRAN) DETAILS</div>
+                    <div class="grid">
+                        <div class="span-3"><label>Adtran Model</label><input type="text" id="priAdtranModel" placeholder="e.g., TA5000"></div>
+                        <div class="span-3"><label>Adtran IP Address</label><input type="text" id="priAdtranIp"></div>
+                        <div class="span-3"><label>PRI Status</label><select id="priStatus"><option>Up</option><option>Down</option><option>Unknown</option></select></div>
+                        <div class="span-3"><label>D-Channel Status</label><select id="priDChannel"><option>Up</option><option>Down</option><option>Unknown</option></select></div>
+                        <div class="span-3"><label>Alarm Lights on Adtran?</label><select id="priAlarms"><option>No Alarms</option><option>Alarms Present</option><option>Unknown</option></select></div>
+                        <div class="span-3"><label>Can Access Adtran Admin?</label><select id="priAdminAccess"><option>Yes</option><option>No</option><option>Unknown</option></select></div>
+                    </div>
+                </div>
+
+                <!-- ALIANZA ANALOG (ADTRAN) -->
+                <div id="alianza-analog-service" style="display: none;" class="full-width">
+                    <div class="sub-header">ANALOG LINES (ADTRAN) DETAILS</div>
+                    <div class="grid">
+                        <div class="span-3"><label>Adtran Model</label><input type="text" id="analogAdtranModel" placeholder="e.g., TA900"></div>
+                        <div class="span-3"><label>Adtran IP Address</label><input type="text" id="analogAdtranIp"></div>
+                        <div class="span-3"><label>Which Ports Affected?</label><input type="text" id="analogPorts" placeholder="e.g., Port 1, 3, 5"></div>
+                        <div class="span-3"><label>Dial Tone Present?</label><select id="analogDialTone"><option>Yes</option><option>No</option><option>Intermittent</option></select></div>
+                        <div class="full-width"><label>Alarm Lights on Adtran?</label><select id="analogAlarms"><option>No Alarms</option><option>Alarms Present</option><option>Unknown</option></select></div>
+                    </div>
+                </div>
+
+                <!-- HPBX YEALINK PHONE -->
+                <div id="hpbx-yealink-service" style="display: none;" class="full-width">
+                    <div class="sub-header">YEALINK PHONE DETAILS (UP TO 5 PHONES)</div>
+                    <div class="grid">
+                        <div class="span-2"><label>Phone 1 Model</label><input type="text" id="yealinkModel1" placeholder="e.g., T46S, T54W"></div>
+                        <div class="span-2"><label>Phone 1 MAC</label><input type="text" id="yealinkMac1" placeholder="00:15:65:XX:XX:XX"></div>
+                        <div class="span-2"><label>Phone 1 Extension</label><input type="text" id="yealinkExt1"></div>
+                        
+                        <div class="span-2"><label>Phone 2 Model</label><input type="text" id="yealinkModel2"></div>
+                        <div class="span-2"><label>Phone 2 MAC</label><input type="text" id="yealinkMac2"></div>
+                        <div class="span-2"><label>Phone 2 Extension</label><input type="text" id="yealinkExt2"></div>
+                        
+                        <div class="span-2"><label>Phone 3 Model</label><input type="text" id="yealinkModel3"></div>
+                        <div class="span-2"><label>Phone 3 MAC</label><input type="text" id="yealinkMac3"></div>
+                        <div class="span-2"><label>Phone 3 Extension</label><input type="text" id="yealinkExt3"></div>
+                        
+                        <div class="span-2"><label>Phone 4 Model</label><input type="text" id="yealinkModel4"></div>
+                        <div class="span-2"><label>Phone 4 MAC</label><input type="text" id="yealinkMac4"></div>
+                        <div class="span-2"><label>Phone 4 Extension</label><input type="text" id="yealinkExt4"></div>
+                        
+                        <div class="span-2"><label>Phone 5 Model</label><input type="text" id="yealinkModel5"></div>
+                        <div class="span-2"><label>Phone 5 MAC</label><input type="text" id="yealinkMac5"></div>
+                        <div class="span-2"><label>Phone 5 Extension</label><input type="text" id="yealinkExt5"></div>
+
+                        <div class="sub-header">DIAGNOSTICS</div>
+                        <div class="span-3"><label>Phones Show Registered?</label><select id="yealinkRegistered"><option>Yes</option><option>No</option><option>Some</option><option>Unknown</option></select></div>
+                        <div class="span-3"><label>Can Make Internal Calls?</label><select id="yealinkInternal"><option>Yes</option><option>No</option><option>Not Tested</option></select></div>
+                        <div class="span-3"><label>Connection Type</label><select id="yealinkConnection"><option>Ethernet</option><option>WiFi</option><option>Mixed</option><option>Unknown</option></select></div>
+                        <div class="span-3"><label>Tried Different Phone/Port?</label><select id="yealinkSwapped"><option>No</option><option>Yes - Same Issue</option><option>Yes - Works on Different Port</option></select></div>
+                    </div>
+                </div>
+
+                <!-- HPBX POLYCOM PHONE -->
+                <div id="hpbx-polycom-service" style="display: none;" class="full-width">
+                    <div class="sub-header">POLYCOM PHONE DETAILS (UP TO 5 PHONES)</div>
+                    <div class="grid">
+                        <div class="span-2"><label>Phone 1 Model</label><input type="text" id="polycomModel1" placeholder="e.g., VVX 450"></div>
+                        <div class="span-2"><label>Phone 1 MAC</label><input type="text" id="polycomMac1" placeholder="64:16:7F:XX:XX:XX"></div>
+                        <div class="span-2"><label>Phone 1 Extension</label><input type="text" id="polycomExt1"></div>
+                        
+                        <div class="span-2"><label>Phone 2 Model</label><input type="text" id="polycomModel2"></div>
+                        <div class="span-2"><label>Phone 2 MAC</label><input type="text" id="polycomMac2"></div>
+                        <div class="span-2"><label>Phone 2 Extension</label><input type="text" id="polycomExt2"></div>
+                        
+                        <div class="span-2"><label>Phone 3 Model</label><input type="text" id="polycomModel3"></div>
+                        <div class="span-2"><label>Phone 3 MAC</label><input type="text" id="polycomMac3"></div>
+                        <div class="span-2"><label>Phone 3 Extension</label><input type="text" id="polycomExt3"></div>
+                        
+                        <div class="span-2"><label>Phone 4 Model</label><input type="text" id="polycomModel4"></div>
+                        <div class="span-2"><label>Phone 4 MAC</label><input type="text" id="polycomMac4"></div>
+                        <div class="span-2"><label>Phone 4 Extension</label><input type="text" id="polycomExt4"></div>
+                        
+                        <div class="span-2"><label>Phone 5 Model</label><input type="text" id="polycomModel5"></div>
+                        <div class="span-2"><label>Phone 5 MAC</label><input type="text" id="polycomMac5"></div>
+                        <div class="span-2"><label>Phone 5 Extension</label><input type="text" id="polycomExt5"></div>
+
+                        <div class="sub-header">DIAGNOSTICS</div>
+                        <div class="span-3"><label>Phones Show Registered?</label><select id="polycomRegistered"><option>Yes</option><option>No</option><option>Some</option><option>Unknown</option></select></div>
+                        <div class="span-3"><label>Can Make Internal Calls?</label><select id="polycomInternal"><option>Yes</option><option>No</option><option>Not Tested</option></select></div>
+                        <div class="span-3"><label>Connection Type</label><select id="polycomConnection"><option>Ethernet</option><option>WiFi</option><option>Mixed</option><option>Unknown</option></select></div>
+                        <div class="span-3"><label>Tried Different Phone/Port?</label><select id="polycomSwapped"><option>No</option><option>Yes - Same Issue</option><option>Yes - Works on Different Port</option></select></div>
+                    </div>
+                </div>
+
+                <!-- HPBX CISCO WEBEX -->
+                <div id="hpbx-webex-service" style="display: none;" class="full-width">
+                    <div class="sub-header">CISCO WEBEX DETAILS (UP TO 5 USERS)</div>
+                    <div class="grid">
+                        <div class="span-2"><label>User 1 Email</label><input type="text" id="webexEmail1"></div>
+                        <div class="span-2"><label>User 1 Username</label><input type="text" id="webexUsername1"></div>
+                        <div class="span-2"><label>User 1 Password</label><input type="text" id="webexPassword1"></div>
+                        
+                        <div class="span-2"><label>User 2 Email</label><input type="text" id="webexEmail2"></div>
+                        <div class="span-2"><label>User 2 Username</label><input type="text" id="webexUsername2"></div>
+                        <div class="span-2"><label>User 2 Password</label><input type="text" id="webexPassword2"></div>
+                        
+                        <div class="span-2"><label>User 3 Email</label><input type="text" id="webexEmail3"></div>
+                        <div class="span-2"><label>User 3 Username</label><input type="text" id="webexUsername3"></div>
+                        <div class="span-2"><label>User 3 Password</label><input type="text" id="webexPassword3"></div>
+                        
+                        <div class="span-2"><label>User 4 Email</label><input type="text" id="webexEmail4"></div>
+                        <div class="span-2"><label>User 4 Username</label><input type="text" id="webexUsername4"></div>
+                        <div class="span-2"><label>User 4 Password</label><input type="text" id="webexPassword4"></div>
+                        
+                        <div class="span-2"><label>User 5 Email</label><input type="text" id="webexEmail5"></div>
+                        <div class="span-2"><label>User 5 Username</label><input type="text" id="webexUsername5"></div>
+                        <div class="span-2"><label>User 5 Password</label><input type="text" id="webexPassword5"></div>
+
+                        <div class="sub-header">DIAGNOSTICS</div>
+                        <div class="span-3"><label>App Type</label><select id="webexAppType"><option>Desktop App</option><option>Mobile App</option><option>Web Browser</option><option>Mixed</option></select></div>
+                        <div class="span-3"><label>App Version</label><input type="text" id="webexVersion" placeholder="e.g., 42.1.0.12345"></div>
+                        <div class="span-3"><label>Shows Connected?</label><select id="webexConnected"><option>Yes</option><option>No</option><option>Some</option><option>Connecting...</option></select></div>
+                        <div class="span-3"><label>Can Make Internal Calls?</label><select id="webexInternal"><option>Yes</option><option>No</option><option>Not Tested</option></select></div>
+                        <div class="span-3"><label>Firewall/VPN in Use?</label><select id="webexFirewall"><option>No</option><option>Yes - Firewall</option><option>Yes - VPN</option><option>Both</option></select></div>
+                        <div class="span-3"><label>Internet Speed Test</label><input type="text" id="webexSpeed" placeholder="100 Mbps down / 20 Mbps up"></div>
+                    </div>
+                </div>
+
+                <!-- HPBX E-FAX -->
+                <div id="hpbx-efax-service" style="display: none;" class="full-width">
+                    <div class="sub-header">E-FAX DETAILS</div>
+                    <div class="grid">
+                        <div class="span-3"><label>Fax Number</label><input type="text" id="efaxNumber"></div>
+                        <div class="span-3"><label>Direction Affected</label><select id="efaxDirection"><option>Both</option><option>Inbound Only</option><option>Outbound Only</option></select></div>
+                        <div class="span-3"><label>Email Delivery Working?</label><select id="efaxEmail"><option>Yes</option><option>No</option><option>Delayed</option></select></div>
+                        <div class="span-3"><label>File Format Sent</label><input type="text" id="efaxFormat" placeholder="e.g., PDF, TIFF"></div>
+                        <div class="full-width"><label>Destination/Source Numbers</label><input type="text" id="efaxNumbers" placeholder="Numbers involved in failed faxes"></div>
+                        <div class="full-width"><label>Error Codes Received</label><input type="text" id="efaxErrors" placeholder="Any error messages or codes"></div>
+                    </div>
+                </div>
+
+                <div class="sub-header">CALL EXAMPLES</div>
+                <div class="span-2"><label>Example 1: From Number</label><input type="text" id="voiceEx1From"></div>
+                <div class="span-2"><label>Example 1: To Number</label><input type="text" id="voiceEx1To"></div>
+                <div class="span-2"><label>Example 1: Date/Time</label><input type="text" id="voiceEx1Time" placeholder="MM/DD HH:MM AM/PM"></div>
+                <div class="full-width"><label>Example 1: Result</label><input type="text" id="voiceEx1Result" placeholder="What happened - dropped, busy signal, no audio, etc."></div>
+                
+                <div class="span-2"><label>Example 2: From Number</label><input type="text" id="voiceEx2From"></div>
+                <div class="span-2"><label>Example 2: To Number</label><input type="text" id="voiceEx2To"></div>
+                <div class="span-2"><label>Example 2: Date/Time</label><input type="text" id="voiceEx2Time"></div>
+                <div class="full-width"><label>Example 2: Result</label><input type="text" id="voiceEx2Result"></div>
+
+                <div class="full-width"><label>Business Hours / Access Info</label><input type="text" id="voiceAccessInfo" placeholder="Mon-Fri 8am-5pm, Contact: John Doe 555-1234"></div>
+            </div>
+        </div>
+
+        <!-- DOWN CIRCUIT -->
+        <div id="down-circuit-fields" class="dynamic-section full-width">
+            <div class="section-header">DOWN CIRCUIT INFORMATION</div>
+            <div class="grid">
+                <div class="span-3"><label>Circuit ID (CKT ID)</label><input type="text" id="cktId"></div>
+                <div class="span-3"><label>Power Confirmed?</label><select id="powerConfirmed"><option>Yes</option><option>No</option></select></div>
+                <div class="full-width"><label>Physical Address</label><input type="text" id="physicalAddress"></div>
+                <div class="span-3"><label>Time Circuit Went Down</label><input type="text" id="downTime" placeholder="MM/DD HH:MM AM/PM"></div>
+            </div>
+        </div>
+
+        <!-- CIRCUIT FLAPPING -->
+        <div id="circuit-flapping-fields" class="dynamic-section full-width">
+            <div class="section-header">CIRCUIT FLAPPING/BOUNCING</div>
+            <div class="grid">
+                <div class="span-3"><label>Circuit ID (CKT ID)</label><input type="text" id="flappingCktId"></div>
+                <div class="span-3"><label>Power Confirmed?</label><select id="flappingPower"><option>Yes</option><option>No</option></select></div>
+                <div class="full-width"><label>Physical Address</label><input type="text" id="flappingAddress"></div>
+                <div class="span-3"><label>Time of Bouncing</label><input type="text" id="bounceTime" placeholder="MM/DD HH:MM AM/PM"></div>
+                <div class="full-width"><label>Logs Provided?</label><textarea id="flappingLogs" rows="3" placeholder="Paste logs here or describe what was provided"></textarea></div>
+            </div>
+        </div>
+
+        <!-- SLOW SPEEDS -->
+        <div id="slow-speeds-fields" class="dynamic-section full-width">
+            <div class="section-header">SLOW INTERNET SPEEDS</div>
+            <div class="grid">
+                <div class="span-3"><label>Circuit ID (CKT ID)</label><input type="text" id="speedsCktId"></div>
+                <div class="span-3"><label>Physical Address</label><input type="text" id="speedsAddress"></div>
+                <div class="full-width"><label>Speed Test Results</label><input type="text" id="speedTest" placeholder="e.g., Download: 50 Mbps, Upload: 10 Mbps (Expected: 100/100)"></div>
+                <div class="span-3"><label>Bypassed Internal Equipment?</label><select id="bypassed"><option>Yes</option><option>No</option></select></div>
+                <div class="span-3"><label>Test Location</label><input type="text" id="testLocation" placeholder="e.g., Direct to Logix, Behind firewall"></div>
+            </div>
+        </div>
+
+        <!-- PACKET LOSS -->
+        <div id="packet-loss-fields" class="dynamic-section full-width">
+            <div class="section-header">PACKET LOSS</div>
+            <div class="grid">
+                <div class="span-3"><label>Circuit ID (CKT ID)</label><input type="text" id="packetCktId"></div>
+                <div class="span-3"><label>Physical Address</label><input type="text" id="packetAddress"></div>
+                <div class="full-width"><label>Logs / Diagnostics</label><textarea id="packetLogs" rows="3" placeholder="Paste ping results, traceroute, or other diagnostics"></textarea></div>
+            </div>
+        </div>
+
+        <!-- COMMON FIELDS -->
+        <div class="section-header">ADDITIONAL INFORMATION</div>
+        <div class="full-width"><label>Detailed Description / Troubleshooting Steps Taken</label><textarea id="description" rows="4" placeholder="Describe the issue and any steps already taken..."></textarea></div>
+        <div class="span-3" style="display: flex; align-items: center; padding-top: 20px;">
+            <input type="checkbox" id="escalate" style="width: auto; margin-right: 8px;">
+            <label for="escalate" style="margin: 0; text-transform: none; font-size: 0.9rem; color: var(--text);">Escalate to Tier 2</label>
+        </div>
+        <div class="span-3" style="display: flex; align-items: center; padding-top: 20px;">
+            <input type="checkbox" id="dispatch" style="width: auto; margin-right: 8px;">
+            <label for="dispatch" style="margin: 0; text-transform: none; font-size: 0.9rem; color: var(--text);">Technician Dispatch Needed</label>
+        </div>
+    </div>
+
+    <button onclick="generateNote()">Generate Ticket Note</button>
+    <button id="copy-btn" class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
+    <button class="reset-btn" onclick="resetForm()">Reset Form</button>
+    <div id="output-area"></div>
+</div>
+
+<script>
+    // Dark mode functionality
+    function initTheme() {
+        var savedTheme = localStorage.getItem('theme');
+        var systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        } else if (systemPrefersDark) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            updateThemeIcon('dark');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            updateThemeIcon('light');
+        }
+    }
+
+    function toggleTheme() {
+        var currentTheme = document.documentElement.getAttribute('data-theme');
+        var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon(newTheme);
+    }
+
+    function updateThemeIcon(theme) {
+        var toggle = document.getElementById('theme-toggle');
+        toggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+
+    // Initialize theme on page load
+    initTheme();
+
+    function toggleIssueFields() {
+        var issueType = document.getElementById('issueType').value;
+        var sections = ['general-fields', 'data-fields', 'voice-fields', 'down-circuit-fields', 'circuit-flapping-fields', 'slow-speeds-fields', 'packet-loss-fields'];
+        
+        sections.forEach(function(id) {
+            document.getElementById(id).style.display = 'none';
+        });
+        
+        if (issueType) {
+            var activeSection = issueType + '-fields';
+            var element = document.getElementById(activeSection);
+            if (element) {
+                element.style.display = 'block';
+            }
+        }
+    }
+
+    function toggleEquipmentFields() {
+        var equipmentType = document.getElementById('equipmentType').value;
+        var equipmentSections = ['direct-handoff-equipment', 'mikrotik-equipment', 'ciena-equipment'];
+        
+        equipmentSections.forEach(function(id) {
+            document.getElementById(id).style.display = 'none';
+        });
+        
+        if (equipmentType) {
+            var activeEquipment = equipmentType + '-equipment';
+            var element = document.getElementById(activeEquipment);
+            if (element) {
+                element.style.display = 'block';
+            }
+        }
+    }
+
+    function toggleVoiceServiceFields() {
+        var voiceServiceType = document.getElementById('voiceServiceType').value;
+        var voiceServiceSections = ['alianza-sip-service', 'alianza-pri-service', 'alianza-analog-service', 
+                                       'hpbx-yealink-service', 'hpbx-polycom-service', 'hpbx-webex-service', 'hpbx-efax-service'];
+        
+        voiceServiceSections.forEach(function(id) {
+            document.getElementById(id).style.display = 'none';
+        });
+        
+        if (voiceServiceType) {
+            var activeService = voiceServiceType + '-service';
+            var element = document.getElementById(activeService);
+            if (element) {
+                element.style.display = 'block';
+            }
+        }
+    }
+
+    function generateNote() {
+        var issueType = document.getElementById('issueType').value;
+        if (!issueType) {
+            alert('Please select an issue type');
+            return;
+        }
+
+        var escalateChecked = document.getElementById('escalate').checked;
+        var dispatchChecked = document.getElementById('dispatch').checked;
+        var timestamp = new Date().toLocaleString();
+        
+        var note = 'TIER 1 TRIAGE NOTE - ' + timestamp + '\n';
+        note += '============================================================\n\n';
+
+        if (escalateChecked || dispatchChecked) {
+            note += '*** URGENT ACTION REQUIRED ***\n';
+            if (escalateChecked) note += '>>> ESCALATE TO TIER 2 IMMEDIATELY <<<\n';
+            if (dispatchChecked) note += '>>> TECHNICIAN DISPATCH NEEDED <<<\n';
+            note += '************************************************************\n\n';
+        }
+
+        note += 'CONTACT INFORMATION:\n';
+        note += '  Contact: ' + (document.getElementById('contactName').value || 'N/A') + '\n';
+        note += '  Phone: ' + (document.getElementById('contactPhone').value || 'N/A') + '\n';
+        note += '  Email: ' + (document.getElementById('contactEmail').value || 'N/A') + '\n\n';
+
+        note += 'ISSUE TYPE: ' + issueType.toUpperCase().replace(/-/g, ' ') + '\n';
+        note += '------------------------------------------------------------\n\n';
+
+        if (issueType === 'general') {
+            note += 'GENERAL ISSUE:\n';
+            note += '  Summary: ' + (document.getElementById('generalSummary').value || 'N/A') + '\n';
+            note += '  Started: ' + (document.getElementById('generalStart').value || 'N/A') + '\n';
+            note += '  Affected Service/Area: ' + (document.getElementById('generalAffected').value || 'N/A') + '\n';
+        } else if (issueType === 'data') {
+            note += 'DATA CONNECTION DIAGNOSTICS:\n';
+            note += '  Issue Started: ' + (document.getElementById('dataStart').value || 'N/A') + '\n';
+            note += '  Affecting: ' + document.getElementById('dataAffecting').value + '\n\n';
+            
+            var equipmentType = document.getElementById('equipmentType').value;
+            note += 'EQUIPMENT PROVIDED ONSITE:\n';
+            
+            if (equipmentType === 'direct-handoff') {
+                note += '  Type: Direct Handoff\n';
+                note += '  Building Switch IP: ' + (document.getElementById('switchIp').value || 'N/A') + '\n';
+                note += '  Building Switch Model: ' + (document.getElementById('switchModel').value || 'N/A') + '\n';
+                note += '  Customer Equipment: ' + (document.getElementById('customerEquipment').value || 'N/A') + '\n';
+                note += '  Customer Rebooted: ' + document.getElementById('customerRebooted').value + '\n';
+                note += '  Handoff Link Light: ' + document.getElementById('handoffLink').value + '\n';
+            } else if (equipmentType === 'mikrotik') {
+                note += '  Type: Mikrotik Router\n';
+                note += '  Mikrotik IP: ' + (document.getElementById('mikrotikIp').value || 'N/A') + '\n';
+                note += '  Can Access Admin: ' + document.getElementById('mikrotikAccess').value + '\n';
+                note += '  Lights Status: ' + (document.getElementById('mikrotikLights').value || 'N/A') + '\n';
+                note += '  Cables Secure: ' + document.getElementById('mikrotikCables').value + '\n';
+                note += '  NOTE: Do not reboot - managed device\n';
+            } else if (equipmentType === 'ciena') {
+                note += '  Type: Ciena Device\n';
+                note += '  Ciena IP: ' + (document.getElementById('cienaIp').value || 'N/A') + '\n';
+                note += '  Can Access Admin: ' + document.getElementById('cienaAccess').value + '\n';
+                note += '  Lights Status: ' + (document.getElementById('cienaLights').value || 'N/A') + '\n';
+                note += '  Cables Secure: ' + document.getElementById('cienaCables').value + '\n';
+                note += '  NOTE: Do not reboot - managed device\n';
+            } else {
+                note += '  Equipment Type: Not specified\n';
+            }
+            
+            note += '\nNETWORK DIAGNOSTICS:\n';
+            note += '  Can Ping Internal Gateway: ' + document.getElementById('pingGateway').value + '\n';
+            note += '  Can Ping 8.8.8.8: ' + document.getElementById('ping8').value + '\n';
+            note += '  Current IP (whatismyip.com): ' + (document.getElementById('currentIp').value || 'N/A') + '\n';
+            note += '  IT Team Available: ' + document.getElementById('itAvailable').value + '\n';
+            note += '  Business Hours/Access: ' + (document.getElementById('dataAccessInfo').value || 'N/A') + '\n';
+        } else if (issueType === 'voice') {
+            note += 'VOICE CONNECTION DIAGNOSTICS:\n';
+            note += '  Issue Started: ' + (document.getElementById('voiceStart').value || 'N/A') + '\n';
+            note += '  Affecting: ' + document.getElementById('voiceAffecting').value + '\n';
+            note += '  Call Direction: ' + document.getElementById('callDirection').value + '\n';
+            note += '  Call Behavior: ' + document.getElementById('callBehavior').value + '\n';
+            note += '  Audio Symptoms: ' + document.getElementById('audioSymptoms').value + '\n';
+            note += '  Internet Working: ' + document.getElementById('internetWorking').value + '\n\n';
+            
+            var voiceServiceType = document.getElementById('voiceServiceType').value;
+            note += 'VOICE SERVICE TYPE:\n';
+            
+            if (voiceServiceType === 'alianza-sip') {
+                note += '  Service: Alianza - SIP Trunking\n';
+                note += '  Channels: ' + (document.getElementById('sipChannels').value || 'N/A') + '\n';
+                note += '  Main BTN: ' + (document.getElementById('sipBtn').value || 'N/A') + '\n';
+                note += '  Customer PBX: ' + (document.getElementById('sipPbxModel').value || 'N/A') + '\n';
+                note += '  Can Ping SIP Gateway: ' + document.getElementById('sipPingGateway').value + '\n';
+                note += '  SIP Registration: ' + document.getElementById('sipRegStatus').value + '\n';
+                note += '  Codec: ' + (document.getElementById('sipCodec').value || 'N/A') + '\n';
+            } else if (voiceServiceType === 'alianza-pri') {
+                note += '  Service: Alianza - PRI (Adtran)\n';
+                note += '  Adtran Model: ' + (document.getElementById('priAdtranModel').value || 'N/A') + '\n';
+                note += '  Adtran IP: ' + (document.getElementById('priAdtranIp').value || 'N/A') + '\n';
+                note += '  PRI Status: ' + document.getElementById('priStatus').value + '\n';
+                note += '  D-Channel: ' + document.getElementById('priDChannel').value + '\n';
+                note += '  Alarms: ' + document.getElementById('priAlarms').value + '\n';
+                note += '  Admin Access: ' + document.getElementById('priAdminAccess').value + '\n';
+            } else if (voiceServiceType === 'alianza-analog') {
+                note += '  Service: Alianza - Analog Lines (Adtran)\n';
+                note += '  Adtran Model: ' + (document.getElementById('analogAdtranModel').value || 'N/A') + '\n';
+                note += '  Adtran IP: ' + (document.getElementById('analogAdtranIp').value || 'N/A') + '\n';
+                note += '  Ports Affected: ' + (document.getElementById('analogPorts').value || 'N/A') + '\n';
+                note += '  Dial Tone: ' + document.getElementById('analogDialTone').value + '\n';
+                note += '  Alarms: ' + document.getElementById('analogAlarms').value + '\n';
+            } else if (voiceServiceType === 'hpbx-yealink') {
+                note += '  Service: HPBX - Yealink Phone\n';
+                for (var i = 1; i <= 5; i++) {
+                    var model = document.getElementById('yealinkModel' + i).value;
+                    var mac = document.getElementById('yealinkMac' + i).value;
+                    var ext = document.getElementById('yealinkExt' + i).value;
+                    if (model || mac || ext) {
+                        note += '  Phone ' + i + ': ' + (model || 'N/A') + ' | MAC: ' + (mac || 'N/A') + ' | Ext: ' + (ext || 'N/A') + '\n';
+                    }
+                }
+                note += '  Registered: ' + document.getElementById('yealinkRegistered').value + '\n';
+                note += '  Internal Calls: ' + document.getElementById('yealinkInternal').value + '\n';
+                note += '  Connection: ' + document.getElementById('yealinkConnection').value + '\n';
+                note += '  Swapped Phone/Port: ' + document.getElementById('yealinkSwapped').value + '\n';
+            } else if (voiceServiceType === 'hpbx-polycom') {
+                note += '  Service: HPBX - Polycom Phone\n';
+                for (var i = 1; i <= 5; i++) {
+                    var model = document.getElementById('polycomModel' + i).value;
+                    var mac = document.getElementById('polycomMac' + i).value;
+                    var ext = document.getElementById('polycomExt' + i).value;
+                    if (model || mac || ext) {
+                        note += '  Phone ' + i + ': ' + (model || 'N/A') + ' | MAC: ' + (mac || 'N/A') + ' | Ext: ' + (ext || 'N/A') + '\n';
+                    }
+                }
+                note += '  Registered: ' + document.getElementById('polycomRegistered').value + '\n';
+                note += '  Internal Calls: ' + document.getElementById('polycomInternal').value + '\n';
+                note += '  Connection: ' + document.getElementById('polycomConnection').value + '\n';
+                note += '  Swapped Phone/Port: ' + document.getElementById('polycomSwapped').value + '\n';
+            } else if (voiceServiceType === 'hpbx-webex') {
+                note += '  Service: HPBX - Cisco Webex\n';
+                for (var i = 1; i <= 5; i++) {
+                    var email = document.getElementById('webexEmail' + i).value;
+                    var username = document.getElementById('webexUsername' + i).value;
+                    var password = document.getElementById('webexPassword' + i).value;
+                    if (email || username || password) {
+                        note += '  User ' + i + ': ' + (email || 'N/A') + ' | Username: ' + (username || 'N/A') + ' | Password: ' + (password || 'N/A') + '\n';
+                    }
+                }
+                note += '  App Type: ' + document.getElementById('webexAppType').value + '\n';
+                note += '  Version: ' + (document.getElementById('webexVersion').value || 'N/A') + '\n';
+                note += '  Connected: ' + document.getElementById('webexConnected').value + '\n';
+                note += '  Internal Calls: ' + document.getElementById('webexInternal').value + '\n';
+                note += '  Firewall/VPN: ' + document.getElementById('webexFirewall').value + '\n';
+                note += '  Speed Test: ' + (document.getElementById('webexSpeed').value || 'N/A') + '\n';
+            } else if (voiceServiceType === 'hpbx-efax') {
+                note += '  Service: HPBX - E-Fax\n';
+                note += '  Fax Number: ' + (document.getElementById('efaxNumber').value || 'N/A') + '\n';
+                note += '  Direction: ' + document.getElementById('efaxDirection').value + '\n';
+                note += '  Email Delivery: ' + document.getElementById('efaxEmail').value + '\n';
+                note += '  File Format: ' + (document.getElementById('efaxFormat').value || 'N/A') + '\n';
+                note += '  Numbers Involved: ' + (document.getElementById('efaxNumbers').value || 'N/A') + '\n';
+                note += '  Error Codes: ' + (document.getElementById('efaxErrors').value || 'N/A') + '\n';
+            } else {
+                note += '  Service Type: Not specified\n';
+            }
+            
+            note += '\nCALL EXAMPLES:\n';
+            var ex1From = document.getElementById('voiceEx1From').value;
+            var ex1To = document.getElementById('voiceEx1To').value;
+            if (ex1From || ex1To) {
+                note += '  1. From: ' + (ex1From || 'N/A') + ' | To: ' + (ex1To || 'N/A') + ' | Time: ' + (document.getElementById('voiceEx1Time').value || 'N/A') + '\n';
+                note += '     Result: ' + (document.getElementById('voiceEx1Result').value || 'N/A') + '\n';
+            }
+            var ex2From = document.getElementById('voiceEx2From').value;
+            var ex2To = document.getElementById('voiceEx2To').value;
+            if (ex2From || ex2To) {
+                note += '  2. From: ' + (ex2From || 'N/A') + ' | To: ' + (ex2To || 'N/A') + ' | Time: ' + (document.getElementById('voiceEx2Time').value || 'N/A') + '\n';
+                note += '     Result: ' + (document.getElementById('voiceEx2Result').value || 'N/A') + '\n';
+            }
+            if (!ex1From && !ex1To && !ex2From && !ex2To) {
+                note += '  No call examples provided\n';
+            }
+            note += '  Business Hours/Access: ' + (document.getElementById('voiceAccessInfo').value || 'N/A') + '\n';
+        } else if (issueType === 'down-circuit') {
+            note += 'DOWN CIRCUIT:\n';
+            note += '  Circuit ID: ' + (document.getElementById('cktId').value || 'N/A') + '\n';
+            note += '  Power Confirmed: ' + document.getElementById('powerConfirmed').value + '\n';
+            note += '  Physical Address: ' + (document.getElementById('physicalAddress').value || 'N/A') + '\n';
+            note += '  Time Down: ' + (document.getElementById('downTime').value || 'N/A') + '\n';
+        } else if (issueType === 'circuit-flapping') {
+            note += 'CIRCUIT FLAPPING/BOUNCING:\n';
+            note += '  Circuit ID: ' + (document.getElementById('flappingCktId').value || 'N/A') + '\n';
+            note += '  Power Confirmed: ' + document.getElementById('flappingPower').value + '\n';
+            note += '  Physical Address: ' + (document.getElementById('flappingAddress').value || 'N/A') + '\n';
+            note += '  Time of Bouncing: ' + (document.getElementById('bounceTime').value || 'N/A') + '\n';
+            note += '  Logs: ' + (document.getElementById('flappingLogs').value || 'N/A') + '\n';
+        } else if (issueType === 'slow-speeds') {
+            note += 'SLOW INTERNET SPEEDS:\n';
+            note += '  Circuit ID: ' + (document.getElementById('speedsCktId').value || 'N/A') + '\n';
+            note += '  Physical Address: ' + (document.getElementById('speedsAddress').value || 'N/A') + '\n';
+            note += '  Speed Test Results: ' + (document.getElementById('speedTest').value || 'N/A') + '\n';
+            note += '  Bypassed Internal Equipment: ' + document.getElementById('bypassed').value + '\n';
+            note += '  Test Location: ' + (document.getElementById('testLocation').value || 'N/A') + '\n';
+        } else if (issueType === 'packet-loss') {
+            note += 'PACKET LOSS:\n';
+            note += '  Circuit ID: ' + (document.getElementById('packetCktId').value || 'N/A') + '\n';
+            note += '  Physical Address: ' + (document.getElementById('packetAddress').value || 'N/A') + '\n';
+            note += '  Logs/Diagnostics: ' + (document.getElementById('packetLogs').value || 'N/A') + '\n';
+        }
+
+        note += '\nDETAILED DESCRIPTION:\n';
+        note += (document.getElementById('description').value || 'No additional details provided') + '\n';
+
+        note += '\n============================================================\n';
+        
+        var equipmentType = document.getElementById('equipmentType').value;
+        if (equipmentType === 'mikrotik' || equipmentType === 'ciena') {
+            note += 'IMPORTANT: Do not power cycle managed devices - this clears logs needed for troubleshooting.\n';
+        } else {
+            note += 'Note: Follow standard troubleshooting procedures before escalation.\n';
+        }
+
+        var output = document.getElementById('output-area');
+        output.textContent = note;
+        output.style.display = 'block';
+        document.getElementById('copy-btn').style.display = 'block';
+        output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function copyToClipboard() {
+        var text = document.getElementById('output-area').textContent;
+        navigator.clipboard.writeText(text).then(function() {
+            var btn = document.getElementById('copy-btn');
+            var originalText = btn.textContent;
+            btn.textContent = '✓ Copied to Clipboard!';
+            setTimeout(function() { btn.textContent = originalText; }, 2000);
+        });
+    }
+
+    function resetForm() {
+        if (confirm('Are you sure you want to reset the form? All data will be cleared.')) {
+            document.querySelectorAll('input[type="text"], input[type="email"]').forEach(function(el) {
+                el.value = '';
+            });
+            
+            document.querySelectorAll('input[type="checkbox"]').forEach(function(el) {
+                el.checked = false;
+            });
+            
+            document.querySelectorAll('textarea').forEach(function(el) {
+                el.value = '';
+            });
+            
+            document.querySelectorAll('select').forEach(function(el) {
+                el.selectedIndex = 0;
+            });
+            
+            document.getElementById('output-area').style.display = 'none';
+            document.getElementById('copy-btn').style.display = 'none';
+            
+            toggleIssueFields();
+        }
+    }
+</script>
+</body>
+</html>
