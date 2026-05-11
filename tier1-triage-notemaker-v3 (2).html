@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tier 1 Support Triage Notemaker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-dark: #0a0e1a;
+            --bg-card: #151922;
+            --bg-card-hover: #1a1f2e;
+            --accent-cyan: #00f5ff;
+            --accent-magenta: #ff00aa;
+            --accent-orange: #ff6b35;
+            --accent-purple: #a855f7;
+            --text-primary: #e8eaed;
+            --text-secondary: #9ca3af;
+            --border-color: #2a2f3a;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(0, 245, 255, 0.07) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 170, 0.07) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255, 107, 53, 0.04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.7} }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            padding: 2.5rem 0 1.5rem;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+            animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideDown { from{opacity:0;transform:translateY(-30px)} to{opacity:1;transform:translateY(0)} }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* ── Section Nav ── */
+        .section-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin: 2rem 0 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .nav-btn .nav-num {
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', monospace;
+            opacity: 0.6;
+            letter-spacing: 0.08em;
+        }
+
+        .nav-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+
+        .nav-btn.active-initial { background: rgba(0,245,255,0.12); color: var(--accent-cyan); }
+        .nav-btn.active-tech    { background: rgba(255,0,170,0.12); color: var(--accent-magenta); }
+        .nav-btn.active-update  { background: rgba(255,107,53,0.12); color: var(--accent-orange); }
+        .nav-btn.active-tqr     { background: rgba(168,85,247,0.12); color: var(--accent-purple); }
+
+        /* ── Panels ── */
+        .panel { display: none; animation: fadeInUp 0.35s ease-out; }
+        .panel.active { display: block; }
+
+        @keyframes fadeInUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            position: relative;
+            overflow: visible;
+            z-index: 2;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover { border-color: rgba(0,245,255,0.3); box-shadow: 0 4px 20px rgba(0,245,255,0.08); }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        /* Color the title bar per panel */
+        .panel-initial .card-title::before { background: linear-gradient(180deg, var(--accent-cyan), #0080ff); }
+        .panel-tech    .card-title::before { background: linear-gradient(180deg, var(--accent-magenta), #cc00ff); }
+        .panel-update  .card-title::before { background: linear-gradient(180deg, var(--accent-orange), var(--warning)); }
+        .panel-tqr     .card-title::before { background: linear-gradient(180deg, var(--accent-purple), var(--accent-magenta)); }
+
+        /* ── Section badges ── */
+        .section-badge {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            padding: 0.15rem 0.55rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .badge-public   { background: rgba(0,245,255,0.12); color: var(--accent-cyan); border: 1px solid rgba(0,245,255,0.3); }
+        .badge-internal { background: rgba(255,0,170,0.12); color: var(--accent-magenta); border: 1px solid rgba(255,0,170,0.3); }
+
+        /* ── Form elements ── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-group { display: flex; flex-direction: column; }
+        .full-width { grid-column: 1 / -1; }
+
+        label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        input, select, textarea {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.65rem 0.9rem;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            transition: all 0.25s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 245, 255, 0.1);
+        }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 1.25rem 0;
+        }
+
+        /* ── Subheadings ── */
+        .sub-label {
+            font-size: 0.78rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent-cyan);
+            margin: 1rem 0 0.6rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid rgba(0,245,255,0.15);
+        }
+
+        /* ── Dynamic sections ── */
+        .dynamic-section { display: none; }
+
+        /* ── Checkbox ── */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0.5rem 0;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent-cyan);
+        }
+
+        .checkbox-label {
+            color: var(--text-primary);
+            cursor: pointer;
+            margin: 0;
+            text-transform: none;
+            letter-spacing: normal;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            padding: 0.75rem 1.75rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 0; height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transform: translate(-50%,-50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        .btn:hover::before { width: 300px; height: 300px; }
+        .btn span { position: relative; z-index: 1; }
+
+        .btn-primary { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta)); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,245,255,0.35); }
+
+        .btn-tech { background: linear-gradient(135deg, var(--accent-magenta), var(--accent-purple)); color: white; }
+        .btn-tech:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,0,170,0.35); }
+
+        .btn-update { background: linear-gradient(135deg, var(--accent-orange), var(--warning)); color: white; }
+        .btn-update:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,107,53,0.35); }
+
+        .btn-success { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid var(--success); }
+        .btn-success:hover { background: rgba(16,185,129,0.25); }
+
+        .btn-danger { background: rgba(239,68,68,0.15); color: var(--error); border: 1px solid var(--error); }
+        .btn-danger:hover { background: rgba(239,68,68,0.25); }
+
+        .btn-group { display: flex; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap; }
+
+        /* ── Output areas ── */
+        .output-area {
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            display: none;
+            margin-top: 1.5rem;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:translateX(0)} }
+
+        .output-public   { background: #00080a; border: 1px solid var(--accent-cyan); color: #00ffee; }
+        .output-internal { background: #0a0010; border: 1px solid var(--accent-magenta); color: #ff88dd; }
+        .output-update   { background: #0a0500; border: 1px solid var(--accent-orange); color: #ffcc88; }
+
+        /* ── TQR Styles ── */
+        .tqr-section-label {
+            font-size: 0.76rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent-purple);
+            margin: 1.2rem 0 0.6rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid rgba(168,85,247,0.2);
+        }
+
+        .tqr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 0.35rem 1.5rem;
+        }
+
+        .tqr-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.55rem;
+            padding: 0.35rem 0;
+            transition: opacity 0.2s;
+        }
+
+        .tqr-item input[type="checkbox"] {
+            width: 16px; height: 16px;
+            margin-top: 3px;
+            flex-shrink: 0;
+            accent-color: var(--accent-purple);
+        }
+
+        .tqr-item label {
+            font-size: 0.84rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 400;
+            color: var(--text-primary);
+            text-transform: none;
+            letter-spacing: normal;
+            cursor: pointer;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .tqr-item.done label { color: var(--success); text-decoration: line-through; opacity: 0.65; }
+
+        .tqr-progress-wrap {
+            margin: 1.5rem 0 0.4rem;
+            background: var(--bg-dark);
+            border-radius: 999px;
+            height: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .tqr-progress-bar {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent-purple), var(--accent-magenta));
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+
+        .tqr-progress-label { font-size: 0.78rem; font-family: 'JetBrains Mono', monospace; color: var(--text-secondary); margin-bottom: 0.75rem; }
+
+        .tqr-status {
+            display: none;
+            margin-top: 0.75rem;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        .tqr-warning { background: rgba(239,68,68,0.1); border: 1px solid var(--error); color: var(--error); }
+        .tqr-ok      { background: rgba(16,185,129,0.1); border: 1px solid var(--success); color: var(--success); }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .logo { font-size: 2.2rem; }
+            .section-nav { gap: 0.35rem; }
+            .nav-btn { min-width: 100px; padding: 0.6rem 0.5rem; font-size: 0.78rem; }
+            .form-grid { grid-template-columns: 1fr; }
+            .btn-group { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1 class="logo">Tier 1 Triage</h1>
+        <p class="tagline">Support Command Center</p>
+    </header>
+
+    <!-- ── Navigation ── -->
+    <nav class="section-nav" role="tablist">
+        <button class="nav-btn active-initial" data-panel="initial" onclick="switchPanel('initial')">
+            <span class="nav-num">01</span>
+            Initial Ticket
+        </button>
+        <button class="nav-btn" data-panel="tech" onclick="switchPanel('tech')">
+            <span class="nav-num">02</span>
+            Tech Note
+        </button>
+        <button class="nav-btn" data-panel="update" onclick="switchPanel('update')">
+            <span class="nav-num">03</span>
+            Update / Closure
+        </button>
+        <button class="nav-btn" data-panel="tqr" onclick="switchPanel('tqr')">
+            <span class="nav-num">04</span>
+            TQR Check
+        </button>
+    </nav>
+
+    <!-- ══════════════════════════════════════════
+         PANEL 1 — INITIAL TICKET (PUBLIC)
+    ══════════════════════════════════════════ -->
+    <div id="panel-initial" class="panel panel-initial active">
+
+        <div class="card">
+            <h2 class="card-title">Contact Information <span class="section-badge badge-public">Public</span></h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="iCallerName">Caller Name</label>
+                    <input type="text" id="iCallerName" placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="iContact">Contact Info</label>
+                    <input type="text" id="iContact" placeholder="555-1234 / john@example.com">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">Reference Information</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="iBuildingSwitch">Building Switch <span style="opacity:.5">(optional)</span></label>
+                    <input type="text" id="iBuildingSwitch" placeholder="Leave blank if not applicable">
+                </div>
+                <div class="form-group">
+                    <label for="iCircuitId">Circuit ID <span style="opacity:.5">(optional)</span></label>
+                    <input type="text" id="iCircuitId" placeholder="Leave blank if not applicable">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">Issue Details</h2>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="iIssueSummary">Issue Summary</label>
+                    <textarea id="iIssueSummary" rows="3" placeholder="Describe the issue reported by the customer..."></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label for="iActionsTaken">Initial Actions Taken</label>
+                    <textarea id="iActionsTaken" rows="3" placeholder="Describe troubleshooting steps performed..."></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label for="iNextSteps">Next Steps</label>
+                    <textarea id="iNextSteps" rows="3" placeholder="What happens next..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">Escalation</h2>
+            <div class="checkbox-group">
+                <input type="checkbox" id="iEscalate">
+                <label for="iEscalate" class="checkbox-label">Escalate to Tier 2</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="iDispatch">
+                <label for="iDispatch" class="checkbox-label">Technician Dispatch Needed</label>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="generateInitial()"><span>Generate Initial Note</span></button>
+            <button class="btn btn-success" id="initial-copy-btn" onclick="copyNote('initial-output')" style="display:none;"><span>Copy to Clipboard</span></button>
+            <button class="btn btn-danger" onclick="resetPanel('initial')"><span>Reset</span></button>
+        </div>
+        <div id="initial-output" class="output-area output-public"></div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         PANEL 2 — TECH NOTE (INTERNAL)
+    ══════════════════════════════════════════ -->
+    <div id="panel-tech" class="panel panel-tech">
+
+        <div class="card">
+            <h2 class="card-title">Tech Note <span class="section-badge badge-internal">Internal</span></h2>
+            <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:1rem;font-family:'JetBrains Mono',monospace;">
+                Select the service type to reveal relevant diagnostic fields.
+            </p>
+
+            <!-- ── Service Type Dropdown ── -->
+            <div class="form-group" style="max-width:320px;margin-bottom:1.25rem;">
+                <label for="techServiceType">Service Type</label>
+                <select id="techServiceType" onchange="toggleTechService()">
+                    <option value="">-- Select Service --</option>
+                    <option value="data">Data</option>
+                    <option value="voice">Voice</option>
+                </select>
+            </div>
+
+            <!-- ═══ DATA SECTION ═══ -->
+            <div id="tech-data" class="dynamic-section">
+                <div class="section-divider"></div>
+                <div class="sub-label">Data Diagnostics</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:0.75rem;">
+                    <div class="form-group">
+                        <label for="dataDeviceName">Device / CPE Name</label>
+                        <input type="text" id="dataDeviceName" placeholder="e.g. Customer Router">
+                    </div>
+                    <div class="form-group">
+                        <label for="dataBldgSwitch1Name">Building Switch 1 Name <span style="opacity:.5">(optional)</span></label>
+                        <input type="text" id="dataBldgSwitch1Name" placeholder="e.g. Floor 1 Switch">
+                    </div>
+                    <div class="form-group">
+                        <label for="dataBldgSwitch2Name">Building Switch 2 Name <span style="opacity:.5">(optional)</span></label>
+                        <input type="text" id="dataBldgSwitch2Name" placeholder="e.g. Floor 2 Switch">
+                    </div>
+                    <div class="form-group">
+                        <label for="dataDeviceIp">Device / CPE IP</label>
+                        <input type="text" id="dataDeviceIp" placeholder="10.0.0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="dataBldgSwitch1">Building Switch 1 IP <span style="opacity:.5">(optional)</span></label>
+                        <input type="text" id="dataBldgSwitch1" placeholder="Leave blank if not applicable">
+                    </div>
+                    <div class="form-group">
+                        <label for="dataBldgSwitch2">Building Switch 2 IP <span style="opacity:.5">(optional)</span></label>
+                        <input type="text" id="dataBldgSwitch2" placeholder="Leave blank if not applicable">
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="dataAdditional">Additional Notes / Diagnostics</label>
+                    <textarea id="dataAdditional" rows="4" placeholder="Ping results, logs, alarms, error messages, corrective actions..."></textarea>
+                </div>
+            </div>
+
+            <!-- ═══ VOICE SECTION ═══ -->
+            <div id="tech-voice" class="dynamic-section">
+                <div class="section-divider"></div>
+                <div class="sub-label">Voice Service Type</div>
+                <div class="form-group" style="max-width:320px;margin-bottom:1.25rem;">
+                    <label for="voiceServiceType">Voice Platform</label>
+                    <select id="voiceServiceType" onchange="toggleVoiceService()">
+                        <option value="">-- Select Platform --</option>
+                        <option value="webex">Webex</option>
+                        <option value="hpbx">HPBX</option>
+                        <option value="voice">Voice (Adtran)</option>
+                    </select>
+                </div>
+
+                <!-- Webex -->
+                <div id="voice-webex" class="dynamic-section">
+                    <div class="sub-label">Webex User Credentials (up to 5)</div>
+                    <div id="webex-users-grid">
+                        <!-- rows injected by JS -->
+                    </div>
+                    <div class="section-divider"></div>
+                    <div class="form-group full-width">
+                        <label for="webexAdditional">Additional Notes / Diagnostics</label>
+                        <textarea id="webexAdditional" rows="4" placeholder="App version, connection status, firewall/VPN, speed test results, error messages..."></textarea>
+                    </div>
+                </div>
+
+                <!-- HPBX -->
+                <div id="voice-hpbx" class="dynamic-section">
+                    <div class="sub-label">HPBX MAC Addresses (up to 5)</div>
+                    <div id="hpbx-macs-grid">
+                        <!-- rows injected by JS -->
+                    </div>
+                    <div class="section-divider"></div>
+                    <div class="form-group full-width">
+                        <label for="hpbxAdditional">Additional Notes / Diagnostics</label>
+                        <textarea id="hpbxAdditional" rows="4" placeholder="Registration status, extension, internal call tests, port/connection info..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Voice / Adtran -->
+                <div id="voice-adtran" class="dynamic-section">
+                    <div class="sub-label">Adtran / Voice Gateway</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="adtranIp">Adtran IP Address</label>
+                            <input type="text" id="adtranIp" placeholder="10.0.0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="adtranModel">Adtran Model</label>
+                            <input type="text" id="adtranModel" placeholder="TA908e, TA5000...">
+                        </div>
+                        <div class="form-group">
+                            <label for="adtranPriStatus">PRI / Line Status</label>
+                            <select id="adtranPriStatus">
+                                <option value="Up">Up</option>
+                                <option value="Down">Down</option>
+                                <option value="Degraded">Degraded</option>
+                                <option value="Unknown">Unknown</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group full-width" style="margin-top:.5rem;">
+                        <label for="adtranAdditional">Additional Notes / Diagnostics</label>
+                        <textarea id="adtranAdditional" rows="4" placeholder="D-channel status, call examples, error codes, corrective actions..."></textarea>
+                    </div>
+                </div>
+
+            </div><!-- /tech-voice -->
+
+        </div><!-- /card -->
+
+        <div class="btn-group">
+            <button class="btn btn-tech" onclick="generateTech()"><span>Generate Tech Note</span></button>
+            <button class="btn btn-success" id="tech-copy-btn" onclick="copyNote('tech-output')" style="display:none;"><span>Copy to Clipboard</span></button>
+            <button class="btn btn-danger" onclick="resetPanel('tech')"><span>Reset</span></button>
+        </div>
+        <div id="tech-output" class="output-area output-internal"></div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         PANEL 3 — UPDATE / CLOSURE
+    ══════════════════════════════════════════ -->
+    <div id="panel-update" class="panel panel-update">
+
+        <div class="card">
+            <h2 class="card-title">Contact Information <span class="section-badge badge-public">Public</span></h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="uCallerName">Caller Name</label>
+                    <input type="text" id="uCallerName" placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="uContact">Contact Info</label>
+                    <input type="text" id="uContact" placeholder="555-1234 / john@example.com">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">Action Type</h2>
+            <div class="form-group" style="max-width:320px;">
+                <label for="uActionType">Select Action</label>
+                <select id="uActionType" onchange="toggleUpdateFields()">
+                    <option value="update">Status Update</option>
+                    <option value="handoff">Handoff / Escalation</option>
+                    <option value="close">Ticket Closure</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Update fields -->
+        <div id="update-fields" class="card">
+            <h2 class="card-title">Status Update</h2>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="uUpdateSummary">Update Summary</label>
+                    <textarea id="uUpdateSummary" rows="3" placeholder="Current status and what is being done..."></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label for="uNextUpdate">Next Update Timing</label>
+                    <input type="text" id="uNextUpdate" placeholder="MM/DD/YYYY HH:MM AM/PM or 'within 2 hours'">
+                </div>
+            </div>
+        </div>
+
+        <!-- Handoff fields -->
+        <div id="handoff-fields" class="card dynamic-section">
+            <h2 class="card-title">Handoff / Escalation Details</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="uHandoffQueue">Escalation Queue / Team</label>
+                    <input type="text" id="uHandoffQueue" placeholder="Tier 2, NOC, Field Ops...">
+                </div>
+                <div class="form-group">
+                    <label for="uHandoffReason">Reason for Escalation</label>
+                    <input type="text" id="uHandoffReason" placeholder="Beyond T1 scope, requires on-site...">
+                </div>
+                <div class="form-group full-width">
+                    <label for="uHandoffPrereqs">Prerequisites Completed</label>
+                    <input type="text" id="uHandoffPrereqs" placeholder="Steps done, evidence attached, access info provided...">
+                </div>
+                <div class="form-group full-width">
+                    <label for="uHandoffNextAction">Next Action for Receiving Team</label>
+                    <input type="text" id="uHandoffNextAction" placeholder="Check OLT alarms, dispatch tech to site...">
+                </div>
+            </div>
+        </div>
+
+        <!-- Closure fields -->
+        <div id="closure-fields" class="card dynamic-section">
+            <h2 class="card-title">Closure Details</h2>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="uIssueSummary">Issue Summary</label>
+                    <textarea id="uIssueSummary" rows="3" placeholder="Summary of the issue..."></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label for="uRootCause">Root Cause</label>
+                    <textarea id="uRootCause" rows="3" placeholder="What caused the issue..."></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label for="uActionTaken">Action Taken / Resolution</label>
+                    <textarea id="uActionTaken" rows="3" placeholder="How the issue was resolved..."></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label for="uVerification">Verification</label>
+                    <textarea id="uVerification" rows="3" placeholder="Tests passed, alarms cleared, stable for X min, customer confirmed..."></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label for="uNextSteps">Next Steps / Follow-up</label>
+                    <textarea id="uNextSteps" rows="3" placeholder="Any follow-up actions..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-update" onclick="generateUpdate()"><span>Generate Note</span></button>
+            <button class="btn btn-success" id="update-copy-btn" onclick="copyNote('update-output')" style="display:none;"><span>Copy to Clipboard</span></button>
+            <button class="btn btn-danger" onclick="resetPanel('update')"><span>Reset</span></button>
+        </div>
+        <div id="update-output" class="output-area output-update"></div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         PANEL 4 — TQR SANITY CHECK
+    ══════════════════════════════════════════ -->
+    <div id="panel-tqr" class="panel panel-tqr">
+
+        <div class="card">
+            <h2 class="card-title">TQR Sanity Check</h2>
+            <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:1rem;font-family:'JetBrains Mono',monospace;">
+                Ticket Quality Review — confirm all points before submitting or closing the ticket.
+            </p>
+
+            <div class="tqr-section-label">1A · Ticket Intake</div>
+            <div class="tqr-grid">
+                <div class="tqr-item" id="tqr-w1"><input type="checkbox" id="tqr1" onchange="updateTQR()"><label for="tqr1">Customer contact info entered &amp; Preferred Communication Method selected in L360</label></div>
+                <div class="tqr-item" id="tqr-w2"><input type="checkbox" id="tqr2" onchange="updateTQR()"><label for="tqr2">Correct Trouble Ticket Type, Trouble Type, Reported Trouble &amp; queue assigned</label></div>
+                <div class="tqr-item" id="tqr-w3"><input type="checkbox" id="tqr3" onchange="updateTQR()"><label for="tqr3">Ticket opened under the correct service / circuit</label></div>
+                <div class="tqr-item" id="tqr-w4"><input type="checkbox" id="tqr4" onchange="updateTQR()"><label for="tqr4">Correct severity level assigned based on impact &amp; urgency</label></div>
+                <div class="tqr-item" id="tqr-w5"><input type="checkbox" id="tqr5" onchange="updateTQR()"><label for="tqr5">Initial public note posted using required template (summary + next action + next update time)</label></div>
+            </div>
+
+            <div class="tqr-section-label">1B · Ticket Transfer (if applicable)</div>
+            <div class="tqr-grid">
+                <div class="tqr-item" id="tqr-w6"><input type="checkbox" id="tqr6" onchange="updateTQR()"><label for="tqr6">Ownership accepted — ticket assigned to self via Ticket Owner field</label></div>
+                <div class="tqr-item" id="tqr-w7"><input type="checkbox" id="tqr7" onchange="updateTQR()"><label for="tqr7">Ownership acknowledged in Public Notes</label></div>
+                <div class="tqr-item" id="tqr-w8"><input type="checkbox" id="tqr8" onchange="updateTQR()"><label for="tqr8">Customer contacted within 30 minutes of receipt with triage update</label></div>
+                <div class="tqr-item" id="tqr-w9"><input type="checkbox" id="tqr9" onchange="updateTQR()"><label for="tqr9">Severity Level &amp; Reported Trouble type validated</label></div>
+                <div class="tqr-item" id="tqr-w10"><input type="checkbox" id="tqr10" onchange="updateTQR()"><label for="tqr10">Next steps &amp; update frequency communicated to customer</label></div>
+            </div>
+
+            <div class="tqr-section-label">2 · Documentation &amp; Narrative Quality</div>
+            <div class="tqr-grid">
+                <div class="tqr-item" id="tqr-w11"><input type="checkbox" id="tqr11" onchange="updateTQR()"><label for="tqr11">Notes are clear, accurate, and professional — readable by any teammate</label></div>
+                <div class="tqr-item" id="tqr-w12"><input type="checkbox" id="tqr12" onchange="updateTQR()"><label for="tqr12">Findings, troubleshooting steps, &amp; test results documented with timestamps</label></div>
+                <div class="tqr-item" id="tqr-w13"><input type="checkbox" id="tqr13" onchange="updateTQR()"><label for="tqr13">Public Notes in plain language — no internal jargon or confusing abbreviations</label></div>
+                <div class="tqr-item" id="tqr-w14"><input type="checkbox" id="tqr14" onchange="updateTQR()"><label for="tqr14">If waiting on customer: Public Note states what is needed &amp; follow-up timing</label></div>
+                <div class="tqr-item" id="tqr-w15"><input type="checkbox" id="tqr15" onchange="updateTQR()"><label for="tqr15">Next action clearly stated with owner (you / customer / other team) &amp; timing</label></div>
+            </div>
+
+            <div class="tqr-section-label">3 · Customer Communication</div>
+            <div class="tqr-grid">
+                <div class="tqr-item" id="tqr-w16"><input type="checkbox" id="tqr16" onchange="updateTQR()"><label for="tqr16">Updates sent via customer's preferred method per severity schedule</label></div>
+                <div class="tqr-item" id="tqr-w17"><input type="checkbox" id="tqr17" onchange="updateTQR()"><label for="tqr17">Sev 1=1hr · Sev 2=2hr · Sev 3=4hr · Sev 4=daily — frequency matches severity</label></div>
+                <div class="tqr-item" id="tqr-w18"><input type="checkbox" id="tqr18" onchange="updateTQR()"><label for="tqr18">Proactive follow-up attempts documented in Public Notes if pending customer</label></div>
+            </div>
+
+            <div class="tqr-section-label">4 · Troubleshooting &amp; Resolution</div>
+            <div class="tqr-grid">
+                <div class="tqr-item" id="tqr-w19"><input type="checkbox" id="tqr19" onchange="updateTQR()"><label for="tqr19">First-contact resolution attempted where feasible</label></div>
+                <div class="tqr-item" id="tqr-w20"><input type="checkbox" id="tqr20" onchange="updateTQR()"><label for="tqr20">All required troubleshooting within scope completed before any handoff</label></div>
+                <div class="tqr-item" id="tqr-w21"><input type="checkbox" id="tqr21" onchange="updateTQR()"><label for="tqr21">Evidence captured: alarms, logs, errors, screenshots, timestamps</label></div>
+                <div class="tqr-item" id="tqr-w22"><input type="checkbox" id="tqr22" onchange="updateTQR()"><label for="tqr22">Corrective actions &amp; any changes / rollbacks fully documented</label></div>
+                <div class="tqr-item" id="tqr-w23"><input type="checkbox" id="tqr23" onchange="updateTQR()"><label for="tqr23">Service restoration verified with evidence (tests, alarms cleared, stability observed)</label></div>
+            </div>
+
+            <div class="tqr-section-label">5A · Handoff (if not closing)</div>
+            <div class="tqr-grid">
+                <div class="tqr-item" id="tqr-w24"><input type="checkbox" id="tqr24" onchange="updateTQR()"><label for="tqr24">Correct escalation / reassignment path / queue used</label></div>
+                <div class="tqr-item" id="tqr-w25"><input type="checkbox" id="tqr25" onchange="updateTQR()"><label for="tqr25">Prerequisites completed, evidence attached, clear next action for receiving team</label></div>
+                <div class="tqr-item" id="tqr-w26"><input type="checkbox" id="tqr26" onchange="updateTQR()"><label for="tqr26">Customer notified of handoff / escalation and which team received it</label></div>
+                <div class="tqr-item" id="tqr-w27"><input type="checkbox" id="tqr27" onchange="updateTQR()"><label for="tqr27">Public Note summarizing why escalated / reassigned &amp; what has been done</label></div>
+            </div>
+
+            <div class="tqr-section-label">5B · Closure (if closing)</div>
+            <div class="tqr-grid">
+                <div class="tqr-item" id="tqr-w28"><input type="checkbox" id="tqr28" onchange="updateTQR()"><label for="tqr28">Correct Clear and Close codes entered</label></div>
+                <div class="tqr-item" id="tqr-w29"><input type="checkbox" id="tqr29" onchange="updateTQR()"><label for="tqr29">Verification documented: tests successful, alarms cleared, service stable for stated period</label></div>
+                <div class="tqr-item" id="tqr-w30"><input type="checkbox" id="tqr30" onchange="updateTQR()"><label for="tqr30">Close Comments: what fixed it, who/what changed, when service restored</label></div>
+                <div class="tqr-item" id="tqr-w31"><input type="checkbox" id="tqr31" onchange="updateTQR()"><label for="tqr31">Customer confirmation obtained (or documented why not)</label></div>
+                <div class="tqr-item" id="tqr-w32"><input type="checkbox" id="tqr32" onchange="updateTQR()"><label for="tqr32">Final Public Note: customer-friendly resolution summary posted</label></div>
+            </div>
+
+            <div class="tqr-progress-wrap">
+                <div class="tqr-progress-bar" id="tqr-bar"></div>
+            </div>
+            <div class="tqr-progress-label" id="tqr-label">0 / 32 items checked</div>
+            <div class="tqr-status tqr-warning" id="tqr-warning">&#9888; Incomplete — review unchecked items before submitting.</div>
+            <div class="tqr-status tqr-ok"      id="tqr-ok">&#10003; All items checked — ticket meets TQR standards.</div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-danger" onclick="resetPanel('tqr')"><span>Reset Checklist</span></button>
+        </div>
+    </div>
+
+</div><!-- /container -->
+
+<script>
+// ── Build dynamic Webex / HPBX grids ──────────────────────────────────────
+(function buildGrids() {
+    var ROW_STYLE = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:0.75rem;';
+
+    var webexGrid = document.getElementById('webex-users-grid');
+    for (var i = 1; i <= 5; i++) {
+        webexGrid.innerHTML +=
+            '<div style="' + ROW_STYLE + '">' +
+                '<div class="form-group"><label for="webexEmail'+i+'">User '+i+' Email</label><input type="text" id="webexEmail'+i+'" placeholder="user@example.com"></div>' +
+                '<div class="form-group"><label for="webexUser'+i+'">User '+i+' Username</label><input type="text" id="webexUser'+i+'" placeholder="jdoe"></div>' +
+                '<div class="form-group"><label for="webexPass'+i+'">User '+i+' Password</label><input type="text" id="webexPass'+i+'" placeholder="••••••••"></div>' +
+            '</div>';
+    }
+
+    var hpbxGrid = document.getElementById('hpbx-macs-grid');
+    for (var j = 1; j <= 5; j++) {
+        hpbxGrid.innerHTML +=
+            '<div style="' + ROW_STYLE + '">' +
+                '<div class="form-group"><label for="hpbxMac'+j+'">Device '+j+' MAC</label><input type="text" id="hpbxMac'+j+'" placeholder="AA:BB:CC:DD:EE:FF"></div>' +
+                '<div class="form-group"><label for="hpbxExt'+j+'">Device '+j+' Extension</label><input type="text" id="hpbxExt'+j+'" placeholder="1001"></div>' +
+                '<div class="form-group"><label for="hpbxModel'+j+'">Device '+j+' Model</label><input type="text" id="hpbxModel'+j+'" placeholder="Yealink T46S..."></div>' +
+            '</div>';
+    }
+})();
+
+// ── Panel navigation ───────────────────────────────────────────────────────
+var PANEL_CLASSES = { initial:'active-initial', tech:'active-tech', update:'active-update', tqr:'active-tqr' };
+
+function switchPanel(name) {
+    document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+    document.querySelectorAll('.nav-btn').forEach(function(b){ b.className = 'nav-btn'; });
+    document.getElementById('panel-' + name).classList.add('active');
+    var btn = document.querySelector('[data-panel="'+name+'"]');
+    if (btn) btn.classList.add(PANEL_CLASSES[name]);
+}
+
+// ── Tech service toggles ───────────────────────────────────────────────────
+function toggleTechService() {
+    var val = document.getElementById('techServiceType').value;
+    document.getElementById('tech-data').style.display  = (val === 'data')  ? 'block' : 'none';
+    document.getElementById('tech-voice').style.display = (val === 'voice') ? 'block' : 'none';
+    if (val !== 'voice') toggleVoiceService(); // reset inner
+}
+
+function toggleVoiceService() {
+    var val = document.getElementById('voiceServiceType').value;
+    document.getElementById('voice-webex').style.display  = (val === 'webex')  ? 'block' : 'none';
+    document.getElementById('voice-hpbx').style.display   = (val === 'hpbx')   ? 'block' : 'none';
+    document.getElementById('voice-adtran').style.display = (val === 'voice')   ? 'block' : 'none';
+}
+
+// ── Update/Closure toggles ─────────────────────────────────────────────────
+function toggleUpdateFields() {
+    var val = document.getElementById('uActionType').value;
+    document.getElementById('update-fields').style.display  = (val === 'update')  ? 'block' : 'none';
+    document.getElementById('handoff-fields').style.display = (val === 'handoff') ? 'block' : 'none';
+    document.getElementById('closure-fields').style.display = (val === 'close')   ? 'block' : 'none';
+}
+
+// ── Copy helper ────────────────────────────────────────────────────────────
+function copyNote(outputId) {
+    var el = document.getElementById(outputId);
+    navigator.clipboard.writeText(el.textContent).then(function() {
+        var idMap = { 'initial-output':'initial-copy-btn', 'tech-output':'tech-copy-btn', 'update-output':'update-copy-btn' };
+        var btn = document.getElementById(idMap[outputId]);
+        if (!btn) return;
+        var orig = btn.innerHTML;
+        btn.innerHTML = '<span>&#10003; Copied!</span>';
+        setTimeout(function(){ btn.innerHTML = orig; }, 2000);
+    });
+}
+
+// ── Reset helpers ──────────────────────────────────────────────────────────
+function resetPanel(name) {
+    var panelId = 'panel-' + name;
+    var confirmMsg = { initial:'Clear all Initial Ticket data?', tech:'Clear all Tech Note data?', update:'Clear all Update/Closure data?', tqr:'Reset the TQR checklist?' };
+    if (!confirm(confirmMsg[name] || 'Reset this section?')) return;
+    var panel = document.getElementById(panelId);
+    panel.querySelectorAll('input[type="text"], input[type="email"], textarea').forEach(function(el){ el.value = ''; });
+    panel.querySelectorAll('input[type="checkbox"]').forEach(function(el){ el.checked = false; });
+    panel.querySelectorAll('select').forEach(function(el){ el.selectedIndex = 0; });
+    // hide dynamic sections
+    panel.querySelectorAll('.dynamic-section').forEach(function(el){ el.style.display = 'none'; });
+    // hide outputs / copy btns
+    ['initial-output','tech-output','update-output'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+    ['initial-copy-btn','tech-copy-btn','update-copy-btn'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+    // restore always-visible update card
+    if (name === 'update') document.getElementById('update-fields').style.display = 'block';
+    if (name === 'tqr') updateTQR();
+}
+
+// ── Generate: Initial ──────────────────────────────────────────────────────
+function generateInitial() {
+    var ts = new Date().toLocaleString();
+    var escalate = document.getElementById('iEscalate').checked;
+    var dispatch = document.getElementById('iDispatch').checked;
+    var bswitch = document.getElementById('iBuildingSwitch').value.trim();
+    var circuit = document.getElementById('iCircuitId').value.trim();
+
+    var n = 'INITIAL TICKET NOTE — ' + ts + '\n';
+    n += '============================================================\n\n';
+
+    if (escalate || dispatch) {
+        n += '*** URGENT ACTION REQUIRED ***\n';
+        if (escalate) n += '>>> ESCALATE TO TIER 2 IMMEDIATELY <<<\n';
+        if (dispatch) n += '>>> TECHNICIAN DISPATCH NEEDED <<<\n';
+        n += '************************************************************\n\n';
+    }
+
+    n += 'Caller Name:\n' + (document.getElementById('iCallerName').value || 'N/A') + '\n\n';
+    n += 'Contact Information:\n' + (document.getElementById('iContact').value || 'N/A') + '\n\n';
+    if (bswitch) n += 'Building Switch:\n' + bswitch + '\n\n';
+    if (circuit) n += 'Circuit ID:\n' + circuit + '\n\n';
+    n += 'Issue Summary:\n' + (document.getElementById('iIssueSummary').value || 'N/A') + '\n\n';
+    n += 'Initial Actions Taken:\n' + (document.getElementById('iActionsTaken').value || 'N/A') + '\n\n';
+    n += 'Next Steps:\n' + (document.getElementById('iNextSteps').value || 'N/A') + '\n';
+
+    var out = document.getElementById('initial-output');
+    out.textContent = n;
+    out.style.display = 'block';
+    document.getElementById('initial-copy-btn').style.display = 'inline-block';
+    out.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── Generate: Tech Note ────────────────────────────────────────────────────
+function generateTech() {
+    var ts = new Date().toLocaleString();
+    var svcType = document.getElementById('techServiceType').value;
+
+    if (!svcType) { alert('Please select a service type.'); return; }
+
+    var n = 'TECH NOTE (INTERNAL) — ' + ts + '\n';
+    n += '============================================================\n\n';
+
+    if (svcType === 'data') {
+        n += 'SERVICE TYPE: DATA\n';
+        n += '------------------------------------------------------------\n';
+        var deviceName = document.getElementById('dataDeviceName').value.trim();
+        var deviceIp   = document.getElementById('dataDeviceIp').value.trim();
+        if (deviceIp) n += (deviceName || 'Device / CPE') + ': ' + deviceIp + '\n';
+        var bs1Name = document.getElementById('dataBldgSwitch1Name').value.trim();
+        var bs1     = document.getElementById('dataBldgSwitch1').value.trim();
+        var bs2Name = document.getElementById('dataBldgSwitch2Name').value.trim();
+        var bs2     = document.getElementById('dataBldgSwitch2').value.trim();
+        if (bs1) n += (bs1Name || 'Building Switch 1') + ': ' + bs1 + '\n';
+        if (bs2) n += (bs2Name || 'Building Switch 2') + ': ' + bs2 + '\n';
+        n += '\nNotes / Diagnostics:\n' + (document.getElementById('dataAdditional').value || 'N/A') + '\n';
+
+    } else if (svcType === 'voice') {
+        var vPlatform = document.getElementById('voiceServiceType').value;
+        if (!vPlatform) { alert('Please select a voice platform.'); return; }
+
+        n += 'SERVICE TYPE: VOICE — ' + vPlatform.toUpperCase() + '\n';
+        n += '------------------------------------------------------------\n';
+
+        if (vPlatform === 'webex') {
+            n += 'WEBEX USERS:\n';
+            for (var i = 1; i <= 5; i++) {
+                var em = document.getElementById('webexEmail' + i).value;
+                var us = document.getElementById('webexUser' + i).value;
+                var pw = document.getElementById('webexPass' + i).value;
+                if (em || us || pw) {
+                    n += '  User ' + i + ':';
+                    if (em) n += ' Email=' + em;
+                    if (us) n += ' | Username=' + us;
+                    if (pw) n += ' | Password=' + pw;
+                    n += '\n';
+                }
+            }
+            var webexNotes = document.getElementById('webexAdditional').value;
+            if (webexNotes) n += '\nNotes / Diagnostics:\n' + webexNotes + '\n';
+
+        } else if (vPlatform === 'hpbx') {
+            n += 'HPBX DEVICES:\n';
+            for (var j = 1; j <= 5; j++) {
+                var mac  = document.getElementById('hpbxMac' + j).value;
+                var ext  = document.getElementById('hpbxExt' + j).value;
+                var mdl  = document.getElementById('hpbxModel' + j).value;
+                if (mac || ext || mdl) {
+                    n += '  Device ' + j + ':';
+                    if (mac) n += ' MAC=' + mac;
+                    if (ext) n += ' | Ext=' + ext;
+                    if (mdl) n += ' | Model=' + mdl;
+                    n += '\n';
+                }
+            }
+            var hpbxNotes = document.getElementById('hpbxAdditional').value;
+            if (hpbxNotes) n += '\nNotes / Diagnostics:\n' + hpbxNotes + '\n';
+
+        } else if (vPlatform === 'voice') {
+            n += 'Adtran IP:       ' + (document.getElementById('adtranIp').value || 'N/A') + '\n';
+            n += 'Adtran Model:    ' + (document.getElementById('adtranModel').value || 'N/A') + '\n';
+            n += 'PRI/Line Status: ' + document.getElementById('adtranPriStatus').value + '\n\n';
+            n += 'Notes / Diagnostics:\n' + (document.getElementById('adtranAdditional').value || 'N/A') + '\n';
+        }
+    }
+
+    var out = document.getElementById('tech-output');
+    out.textContent = n;
+    out.style.display = 'block';
+    document.getElementById('tech-copy-btn').style.display = 'inline-block';
+    out.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── Generate: Update / Closure ─────────────────────────────────────────────
+function generateUpdate() {
+    var ts = new Date().toLocaleString();
+    var action = document.getElementById('uActionType').value;
+
+    var labels = { update: 'STATUS UPDATE', handoff: 'HANDOFF / ESCALATION', close: 'TICKET CLOSURE' };
+    var n = labels[action] + ' — ' + ts + '\n';
+    n += '============================================================\n\n';
+
+    n += 'Caller Name:\n' + (document.getElementById('uCallerName').value || 'N/A') + '\n\n';
+    n += 'Contact Information:\n' + (document.getElementById('uContact').value || 'N/A') + '\n\n';
+
+    if (action === 'update') {
+        n += 'Update Summary:\n' + (document.getElementById('uUpdateSummary').value || 'N/A') + '\n\n';
+        n += 'Next Update:\n' + (document.getElementById('uNextUpdate').value || 'N/A') + '\n';
+
+    } else if (action === 'handoff') {
+        n += 'Escalation Queue / Team:\n' + (document.getElementById('uHandoffQueue').value || 'N/A') + '\n\n';
+        n += 'Reason for Escalation:\n' + (document.getElementById('uHandoffReason').value || 'N/A') + '\n\n';
+        n += 'Prerequisites Completed:\n' + (document.getElementById('uHandoffPrereqs').value || 'N/A') + '\n\n';
+        n += 'Next Action for Receiving Team:\n' + (document.getElementById('uHandoffNextAction').value || 'N/A') + '\n';
+
+    } else if (action === 'close') {
+        n += 'Issue Summary:\n' + (document.getElementById('uIssueSummary').value || 'N/A') + '\n\n';
+        n += 'Root Cause:\n' + (document.getElementById('uRootCause').value || 'N/A') + '\n\n';
+        n += 'Action Taken / Resolution:\n' + (document.getElementById('uActionTaken').value || 'N/A') + '\n\n';
+        n += 'Verification:\n' + (document.getElementById('uVerification').value || 'N/A') + '\n\n';
+        n += 'Next Steps:\n' + (document.getElementById('uNextSteps').value || 'N/A') + '\n';
+    }
+
+    var out = document.getElementById('update-output');
+    out.textContent = n;
+    out.style.display = 'block';
+    document.getElementById('update-copy-btn').style.display = 'inline-block';
+    out.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── TQR ────────────────────────────────────────────────────────────────────
+function updateTQR() {
+    var total = 32, checked = 0;
+    for (var i = 1; i <= total; i++) {
+        var cb   = document.getElementById('tqr' + i);
+        var wrap = document.getElementById('tqr-w' + i);
+        if (cb && cb.checked) { checked++; if (wrap) wrap.classList.add('done'); }
+        else                  { if (wrap) wrap.classList.remove('done'); }
+    }
+    var pct = Math.round(checked / total * 100);
+    document.getElementById('tqr-bar').style.width = pct + '%';
+    document.getElementById('tqr-label').textContent = checked + ' / ' + total + ' items checked';
+    document.getElementById('tqr-warning').style.display = (checked > 0 && checked < total) ? 'block' : 'none';
+    document.getElementById('tqr-ok').style.display      = (checked === total)               ? 'block' : 'none';
+}
+</script>
+</body>
+</html>
